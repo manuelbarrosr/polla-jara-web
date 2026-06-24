@@ -27,7 +27,8 @@
   .rtab-test.active{background:var(--coral);border-color:var(--coral);color:#fff;box-shadow:0 0 0 3px rgba(255,84,54,.3)}
   .match-detail{display:inline-block;margin-top:10px;font-size:.8rem;font-weight:700;color:var(--field);text-decoration:none}
   .match-detail:hover{text-decoration:underline}
-  .match-filter{display:inline-flex;align-items:center;gap:8px;margin:4px 0 14px;
+  .match-filters{display:flex;flex-wrap:wrap;gap:8px 18px;margin:4px 0 14px}
+  .match-filter{display:inline-flex;align-items:center;gap:8px;
                 font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
   .match-filter input{width:16px;height:16px;accent-color:var(--field);cursor:pointer;margin:0}
 
@@ -57,6 +58,7 @@
   .state.open{background:#E7F3EC;color:#0C5C3E}
   .state.locked{background:#F0E7E4;color:#9A4A33}
   .state.live{background:var(--coral);color:#fff}
+  .state.final{background:#E4EEF8;color:#1B5E94}
   .savestate{font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:99px;letter-spacing:.02em}
   .savestate:empty{display:none}
   .savestate.ok{background:#E7F3EC;color:#0C5C3E}
@@ -160,7 +162,7 @@ const params = new URLSearchParams(location.search);
 const ENTRY_ID = params.get('ticket');
 
 let lockMin = 15, matches = [], preds = {}, minKickoff = null, saveTimers = {}, teamsByName = {};
-let onlyUpcoming = true, currentRound = null;
+let onlyUpcoming = true, onlyToday = false, currentRound = null;
 
 function nowMs(){ return Date.now(); }
 function lockMsFor(kickoffISO){ return new Date(kickoffISO).getTime() - lockMin*60000; }
@@ -270,7 +272,10 @@ function renderRounds(){
   const present = ROUND_ORDER.filter(r => matches.some(m=>m.round===r));
   const content = document.getElementById('content');
   content.innerHTML = `<div class="rounds" id="rounds"></div>
-    <label class="match-filter" id="filter-wrap"><input type="checkbox" id="only-upcoming"><span>Mostrar solo los que faltan por jugar</span></label>
+    <div class="match-filters" id="filter-wrap">
+      <label class="match-filter"><input type="checkbox" id="only-upcoming"><span>Mostrar solo los que faltan por jugar</span></label>
+      <label class="match-filter"><input type="checkbox" id="only-today"><span>Partidos de hoy</span></label>
+    </div>
     <div class="matches" id="match-list"></div>`;
   const tabs = document.getElementById('rounds');
   const phases = present.filter(r => r !== 'GROUP_STAGE');
@@ -298,6 +303,9 @@ function renderRounds(){
   const chk = document.getElementById('only-upcoming');
   chk.checked = onlyUpcoming;
   chk.addEventListener('change', e=>{ onlyUpcoming = e.target.checked; if(currentRound) paintMatches(currentRound); });
+  const chkT = document.getElementById('only-today');
+  chkT.checked = onlyToday;
+  chkT.addEventListener('change', e=>{ onlyToday = e.target.checked; if(currentRound) paintMatches(currentRound); });
 
   selectRound(present[0]);
 }
@@ -340,13 +348,21 @@ function selectTab(key){
 function isUpcoming(m){
   return m.status!=='FINISHED' && m.status!=='IN_PLAY' && new Date(m.kickoff).getTime() > nowMs();
 }
+function isToday(m){
+  const opts = {timeZone:'America/Santiago', year:'numeric', month:'2-digit', day:'2-digit'};
+  return new Date(m.kickoff).toLocaleDateString('en-CA', opts) === new Date().toLocaleDateString('en-CA', opts);
+}
 function paintMatches(round){
   currentRound = round;
   let list = matches.filter(m=>m.round===round).sort((a,b)=> a.kickoff<b.kickoff?-1:1);
   if(onlyUpcoming) list = list.filter(isUpcoming);
+  if(onlyToday) list = list.filter(isToday);
   const box = document.getElementById('match-list');
   if(!list.length){
-    box.innerHTML = `<div class="loading">${onlyUpcoming ? 'No quedan partidos por jugar en esta ronda.' : 'No hay partidos en esta ronda.'}</div>`;
+    const msg = onlyToday ? 'No hay partidos de hoy en esta ronda.'
+              : onlyUpcoming ? 'No quedan partidos por jugar en esta ronda.'
+              : 'No hay partidos en esta ronda.';
+    box.innerHTML = `<div class="loading">${msg}</div>`;
     return;
   }
   box.innerHTML = list.map(renderMatch).join('');
@@ -368,7 +384,7 @@ function renderMatch(m){
   const live = m.status==='IN_PLAY';
   const finished = m.status==='FINISHED';
   let stateHtml = '';
-  if(finished) stateHtml = `<span class="state locked">Final ${m.home_score}-${m.away_score}</span>`;
+  if(finished) stateHtml = `<span class="state final">Final ${m.home_score}-${m.away_score}</span>`;
   else if(live) stateHtml = `<span class="state live">En juego</span>`;
   else if(isLocked(m.kickoff)) stateHtml = `<span class="state locked">Cerrado</span>`;
   else if(!m.home_team||!m.away_team) stateHtml = `<span class="state locked">Por definir</span>`;
