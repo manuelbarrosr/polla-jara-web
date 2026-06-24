@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predicciones — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .crumb{font-size:.85rem;color:var(--muted);margin:18px 0 2px}
+  .crumb a{color:var(--field);font-weight:600;text-decoration:none}
+  .ticket-title{font-family:var(--score);font-size:2rem;margin:0 0 2px;line-height:1}
+
+  /* Tabs de rondas */
+  .rounds{display:flex;gap:8px;overflow-x:auto;padding:14px 0 6px;-webkit-overflow-scrolling:touch}
+  .rtab{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
+        padding:8px 15px;border-radius:99px;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap}
+  .rtab.active{background:var(--field-deep);color:#fff;border-color:var(--field-deep)}
+  .rtab-special{display:inline-flex;align-items:center;gap:6px;background:var(--gold);border-color:var(--gold);color:#3A2A06;font-weight:800}
+  .rtab-special svg{width:15px;height:15px}
+  .rtab-special:hover{filter:brightness(.97)}
+  .rtab-special.active{background:var(--gold);border-color:var(--gold);color:#3A2A06;box-shadow:0 0 0 3px rgba(231,181,59,.4)}
+  .rtab-test{background:var(--coral);border-color:var(--coral);color:#fff}
+  .rtab-test.active{background:var(--coral);border-color:var(--coral);color:#fff;box-shadow:0 0 0 3px rgba(255,84,54,.3)}
+  .match-detail{display:inline-block;margin-top:10px;font-size:.8rem;font-weight:700;color:var(--field);text-decoration:none}
+  .match-detail:hover{text-decoration:underline}
+  .match-filter{display:inline-flex;align-items:center;gap:8px;margin:4px 0 14px;
+                font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+  .match-filter input{width:16px;height:16px;accent-color:var(--field);cursor:pointer;margin:0}
+
+  /* Desplegable "Fases" — desktop: plano (tabs en fila); móvil: colapsado */
+  .fases{display:contents}
+  .fases-toggle{display:none}
+  .fases-menu{display:contents}
+  .caret{font-size:.7em}
+  @media(max-width:600px){
+    .rounds{overflow:visible;flex-wrap:wrap}
+    .fases{display:inline-block;position:relative;order:2}
+    .fases-toggle{display:inline-flex;align-items:center;gap:5px}
+    .rtab-special{order:1}
+    .fases-menu{position:absolute;top:100%;left:0;z-index:50;display:none;flex-direction:column;gap:4px;
+                background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);
+                padding:6px;margin-top:6px;min-width:160px}
+    .fases.open .fases-menu{display:flex}
+    .fases-menu .rtab{text-align:left}
+  }
+
+  /* Partido */
+  .matches{display:grid;gap:12px;margin-top:10px}
+  .match{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+  .match .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .match .when{font-size:.74rem;color:var(--muted);font-weight:600}
+  .match .state{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:99px}
+  .state.open{background:#E7F3EC;color:#0C5C3E}
+  .state.locked{background:#F0E7E4;color:#9A4A33}
+  .state.live{background:var(--coral);color:#fff}
+  .savestate{font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:99px;letter-spacing:.02em}
+  .savestate:empty{display:none}
+  .savestate.ok{background:#E7F3EC;color:#0C5C3E}
+  .savestate.saving{background:#EEF1ED;color:#5C6B63}
+  .savestate.pending{background:#FDECE8;color:#B23A23}
+  .savestate.err{background:#FDECE8;color:#B23A23}
+  .match.is-saved{border-color:#BFE0CD;box-shadow:inset 3px 0 0 var(--ok),var(--shadow)}
+  .match.is-saved .goal{border-color:#BFE0CD}
+
+  .score-row{display:grid;grid-template-columns:minmax(0,1fr) 52px 16px 52px minmax(0,1fr);
+             align-items:center;gap:8px;padding:4px 0}
+  .team{display:flex;align-items:center;gap:9px;font-weight:700;min-width:0}
+  .team.home{justify-content:flex-end;text-align:right}
+  .team.away{justify-content:flex-start;text-align:left}
+  .dash{font-family:var(--score);font-size:1.4rem;color:var(--muted);text-align:center}
+  .team .tla{font-family:var(--score);font-size:.95rem;color:var(--muted);background:#F0F3EF;border-radius:6px;padding:1px 7px;letter-spacing:.03em}
+  .team .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .team.tbd{color:var(--muted);font-weight:600;font-style:italic}
+  .goal{width:100%;height:48px;padding:0;text-align:center;font-family:var(--score);font-size:1.7rem;
+        border:1.5px solid var(--line);border-radius:10px;background:#FAFBFA;color:var(--ink);
+        -moz-appearance:textfield;appearance:textfield}
+  .goal::-webkit-outer-spin-button,.goal::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .goal:focus{outline:none;border-color:var(--field);box-shadow:0 0 0 3px rgba(14,110,78,.15)}
+  .goal:disabled{background:#EFF1EE;color:#AEB7B0;cursor:not-allowed}
+
+  /* Especiales */
+  .specials{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
+  .specials .lock-note{font-size:.82rem;padding:10px 12px;border-radius:10px;margin-bottom:16px;background:#FFF7E8;border:1px solid #F1E0B8;color:#7A5B12}
+  .specials .lock-note.closed{background:#F0E7E4;border-color:#E0C6BD;color:#9A4A33}
+  .sp-field{margin-bottom:13px}
+  .sp-field label{display:block;font-size:.78rem;font-weight:800;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+  .sp-field select,.sp-field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font-family:var(--font);font-size:.95rem;background:#FAFBFA}
+  .sp-field select:focus,.sp-field input:focus{outline:none;border-color:var(--field);box-shadow:0 0 0 3px rgba(14,110,78,.15)}
+  /* Autocompletado MVP / Goleador */
+  .ac-field{position:relative}
+  .ac-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;background:#fff;border:1px solid var(--line);
+           border-radius:10px;box-shadow:var(--shadow);max-height:240px;overflow-y:auto;display:none}
+  .ac-menu.show{display:block}
+  .ac-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;cursor:pointer}
+  .ac-item:hover,.ac-item.active{background:#F3F6F2}
+  .ac-item .ac-name{font-weight:600;font-size:.9rem;color:var(--ink)}
+  .ac-item .ac-team{font-size:.74rem;color:var(--muted);white-space:nowrap;flex:0 0 auto}
+  .ac-empty{padding:9px 12px;font-size:.85rem;color:var(--muted)}
+  .sp-save{width:100%;justify-content:center;margin-top:6px}
+  .sp-msg{font-size:.85rem;margin-top:10px;text-align:center;display:none}
+  .sp-msg.show{display:block}
+  .sp-msg.ok{color:var(--ok)} .sp-msg.err{color:#B23A23}
+
+  .loading{text-align:center;color:var(--muted);padding:40px}
+  body{padding-bottom:64px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="crumb"><a href="index.html">← Volver</a></p>
+  <h1 class="ticket-title" id="ticket-name">Predicciones</h1>
+  <p class="muted" id="ticket-sub" style="margin-top:0;font-size:.85rem">Carga tus marcadores. Se guardan solos.</p>
+
+  <div id="content"><div class="loading">Cargando partidos…</div></div>
+
+  <!-- Especiales -->
+  <div class="specials" id="specials" style="display:none">
+    <p class="eyebrow">Antes de que arranque</p>
+    <h2 class="h-sec" style="margin-bottom:12px">Pronósticos especiales</h2>
+    <div id="sp-lock" class="lock-note"></div>
+    <div class="sp-field"><label>Campeón (10 pts)</label><select id="sp-champion"></select></div>
+    <div class="sp-field"><label>Subcampeón (6 pts)</label><select id="sp-runner"></select></div>
+    <div class="sp-field"><label>Tercer lugar (4 pts)</label><select id="sp-third"></select></div>
+    <div class="sp-field ac-field"><label>MVP del torneo (5 pts)</label><input id="sp-mvp" type="text" autocomplete="off" placeholder="Escribe 3+ letras del jugador"><div class="ac-menu" id="ac-mvp"></div></div>
+    <div class="sp-field ac-field"><label>Goleador (5 pts)</label><input id="sp-scorer" type="text" autocomplete="off" placeholder="Escribe 3+ letras del jugador"><div class="ac-menu" id="ac-scorer"></div></div>
+    <button class="btn btn-primary sp-save" id="sp-save">Guardar los 5 especiales</button>
+    <div class="sp-msg" id="sp-msg"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="players.js"></script>
+<script>
+const ROUND_LABEL = {GROUP_STAGE:'Testeo',LAST_32:'16avos',LAST_16:'8vos',QUARTER_FINALS:'4tos',SEMI_FINALS:'Semis',THIRD_PLACE:'3er puesto',FINAL:'Final'};
+const ROUND_ORDER = ['GROUP_STAGE','LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','THIRD_PLACE','FINAL'];
+
+const params = new URLSearchParams(location.search);
+const ENTRY_ID = params.get('ticket');
+
+let lockMin = 15, matches = [], preds = {}, minKickoff = null, saveTimers = {}, teamsByName = {};
+let onlyUpcoming = true, currentRound = null;
+
+function nowMs(){ return Date.now(); }
+function lockMsFor(kickoffISO){ return new Date(kickoffISO).getTime() - lockMin*60000; }
+function isLocked(kickoffISO){ return nowMs() >= lockMsFor(kickoffISO); }
+function fmtWhen(iso){
+  return new Date(iso).toLocaleString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+async function init(){
+  const auth = await requireProfile();
+  if(!auth) return;
+  paintTopbar(auth.profile);
+
+  if(!ENTRY_ID){ document.getElementById('content').innerHTML = '<div class="loading">Falta indicar el ticket.</div>'; return; }
+
+  // ¿la planilla es mía?
+  const { data: entry } = await sb.from('entries').select('id,nombre,user_id').eq('id', ENTRY_ID).maybeSingle();
+  if(!entry || entry.user_id !== auth.user.id){
+    document.getElementById('content').innerHTML = '<div class="loading">Esta planilla no es tuya.</div>'; return;
+  }
+  document.getElementById('ticket-name').textContent = entry.nombre;
+
+  // config (lock_minutes)
+  const { data: cfg } = await sb.from('config').select('key,value');
+  const cmap = Object.fromEntries((cfg||[]).map(c=>[c.key,c.value]));
+  lockMin = cmap.lock_minutes ?? 15;
+
+  // partidos
+  const { data: ms } = await sb.from('matches').select('*');
+  matches = ms||[];
+  // El cierre de los especiales se calcula SOLO con partidos de playoffs
+  // (ignora los de grupos del modo test, que si no adelantarían el cierre).
+  minKickoff = matches.filter(m=>m.round!=='GROUP_STAGE')
+    .reduce((min,m)=> !min || m.kickoff<min ? m.kickoff : min, null);
+
+  // banderas de los equipos
+  const { data: ts } = await sb.from('teams').select('name,crest');
+  teamsByName = Object.fromEntries((ts||[]).map(t=>[t.name, t.crest]));
+
+  // predicciones existentes de esta planilla
+  const { data: ps } = await sb.from('predictions').select('match_id,home_pred,away_pred').eq('entry_id', ENTRY_ID);
+  preds = Object.fromEntries((ps||[]).map(p=>[p.match_id,p]));
+
+  renderRounds();
+  await renderSpecials(auth.user.id);
+  setupAutocomplete('sp-mvp','ac-mvp');
+  setupAutocomplete('sp-scorer','ac-scorer');
+}
+
+// ---------- Autocompletado de jugadores (MVP / Goleador) ----------
+function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+
+function setupAutocomplete(inputId, menuId){
+  const input = document.getElementById(inputId);
+  const menu  = document.getElementById(menuId);
+  if(!input || !menu || !Array.isArray(window.PLAYERS)) return;
+  let items = [], activeIdx = -1;
+
+  function close(){ menu.classList.remove('show'); menu.innerHTML=''; items=[]; activeIdx=-1; }
+
+  function choose(i){
+    if(i<0 || i>=items.length) return;
+    input.value = items[i][0];
+    close();
+    if(window.recheckSpecials) window.recheckSpecials();   // re-habilita el botón
+  }
+
+  function render(matches){
+    items = matches; activeIdx = -1;
+    menu.innerHTML = matches.length
+      ? matches.map((p,i)=>`<div class="ac-item" data-i="${i}"><span class="ac-name">${escapeHtml(p[0])}</span><span class="ac-team">${escapeHtml(p[1])}</span></div>`).join('')
+      : '<div class="ac-empty">Sin coincidencias</div>';
+    menu.classList.add('show');
+    menu.querySelectorAll('.ac-item').forEach(el=>{
+      el.addEventListener('mousedown', e=>{ e.preventDefault(); choose(Number(el.dataset.i)); });
+    });
+  }
+
+  input.addEventListener('input', ()=>{
+    const q = normTxt(input.value.trim());
+    if(q.length < 3){ close(); return; }
+    const res = [];
+    for(const p of window.PLAYERS){
+      if(normTxt(p[0]).includes(q)){ res.push(p); if(res.length >= 10) break; }
+    }
+    render(res);
+  });
+
+  input.addEventListener('keydown', e=>{
+    if(!menu.classList.contains('show')) return;
+    const els = menu.querySelectorAll('.ac-item');
+    if(!els.length) return;
+    if(e.key === 'ArrowDown'){ e.preventDefault(); activeIdx = Math.min(activeIdx+1, els.length-1); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); activeIdx = Math.max(activeIdx-1, 0); }
+    else if(e.key === 'Enter'){ if(activeIdx>=0){ e.preventDefault(); choose(activeIdx); } return; }
+    else if(e.key === 'Escape'){ close(); return; }
+    else return;
+    els.forEach((el,i)=>el.classList.toggle('active', i===activeIdx));
+    if(els[activeIdx]) els[activeIdx].scrollIntoView({block:'nearest'});
+  });
+
+  input.addEventListener('blur', ()=> setTimeout(close, 120));
+}
+
+// ---------- Rondas + partidos ----------
+function renderRounds(){
+  const present = ROUND_ORDER.filter(r => matches.some(m=>m.round===r));
+  const content = document.getElementById('content');
+  content.innerHTML = `<div class="rounds" id="rounds"></div>
+    <label class="match-filter" id="filter-wrap"><input type="checkbox" id="only-upcoming"><span>Mostrar solo los que faltan por jugar</span></label>
+    <div class="matches" id="match-list"></div>`;
+  const tabs = document.getElementById('rounds');
+  const phases = present.filter(r => r !== 'GROUP_STAGE');
+  const hasTest = present.includes('GROUP_STAGE');
+
+  const testBtn = hasTest
+    ? `<button class="rtab rtab-test" data-r="GROUP_STAGE">Testeo</button>` : '';
+  const fasesGroup = phases.length
+    ? `<div class="fases" id="fases">
+         <button type="button" class="fases-toggle rtab"><span class="fases-label">Fases</span><span class="caret">▾</span></button>
+         <div class="fases-menu">${phases.map(r=>`<button class="rtab" data-r="${r}">${ROUND_LABEL[r]}</button>`).join('')}</div>
+       </div>` : '';
+  const specialTab = `<button class="rtab rtab-special" data-r="SPECIAL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3"/><path d="M12 12v3M9.5 20h5l-.5-3h-4z"/></svg>Torneo</button>`;
+
+  tabs.innerHTML = testBtn + fasesGroup + specialTab;
+
+  tabs.querySelectorAll('.rtab[data-r]').forEach(b=>b.onclick=()=>selectRound(b.dataset.r));
+  const fasesEl = document.getElementById('fases');
+  if(fasesEl){
+    const t = fasesEl.querySelector('.fases-toggle');
+    t.onclick = (e)=>{ e.stopPropagation(); fasesEl.classList.toggle('open'); };
+    document.addEventListener('click', ()=> fasesEl.classList.remove('open'));
+  }
+
+  const chk = document.getElementById('only-upcoming');
+  chk.checked = onlyUpcoming;
+  chk.addEventListener('change', e=>{ onlyUpcoming = e.target.checked; if(currentRound) paintMatches(currentRound); });
+
+  selectRound(present[0]);
+}
+
+// Selecciona una pestaña: marca activo, actualiza el desplegable "Fases" y pinta
+function selectRound(r){
+  const tabs = document.getElementById('rounds');
+  tabs.querySelectorAll('.rtab').forEach(x=>x.classList.remove('active'));
+  const btn = tabs.querySelector(`.rtab[data-r="${r}"]`);
+  if(btn) btn.classList.add('active');
+  const fasesEl = document.getElementById('fases');
+  if(fasesEl){
+    const label = fasesEl.querySelector('.fases-label');
+    const toggle = fasesEl.querySelector('.fases-toggle');
+    const inFases = !!fasesEl.querySelector(`.rtab[data-r="${r}"]`);
+    if(inFases){ toggle.classList.add('active'); label.textContent = ROUND_LABEL[r]; }
+    else { toggle.classList.remove('active'); label.textContent = 'Fases'; }
+    fasesEl.classList.remove('open');
+  }
+  selectTab(r);
+}
+
+// Alterna entre la grilla de partidos y el bloque de especiales
+function selectTab(key){
+  const matchList = document.getElementById('match-list');
+  const specials = document.getElementById('specials');
+  const filter = document.getElementById('filter-wrap');
+  if(key === 'SPECIAL'){
+    matchList.style.display = 'none';
+    if(filter) filter.style.display = 'none';
+    if(specials) specials.style.display = 'block';
+  }else{
+    if(specials) specials.style.display = 'none';
+    if(filter) filter.style.display = '';
+    matchList.style.display = '';
+    paintMatches(key);
+  }
+}
+
+function isUpcoming(m){
+  return m.status!=='FINISHED' && m.status!=='IN_PLAY' && new Date(m.kickoff).getTime() > nowMs();
+}
+function paintMatches(round){
+  currentRound = round;
+  let list = matches.filter(m=>m.round===round).sort((a,b)=> a.kickoff<b.kickoff?-1:1);
+  if(onlyUpcoming) list = list.filter(isUpcoming);
+  const box = document.getElementById('match-list');
+  if(!list.length){
+    box.innerHTML = `<div class="loading">${onlyUpcoming ? 'No quedan partidos por jugar en esta ronda.' : 'No hay partidos en esta ronda.'}</div>`;
+    return;
+  }
+  box.innerHTML = list.map(renderMatch).join('');
+  list.forEach(m=>wireMatch(m));
+}
+
+function teamHtml(name, side){
+  if(!name) return `<div class="team tbd ${side}"><span class="nm">Por definir</span></div>`;
+  const crest = teamsByName[name];
+  const flag = crest ? `<img class="flag" src="${crest}" alt="">` : '';
+  const nm = `<span class="nm">${escapeHtml(name)}</span>`;
+  return side==='home'
+    ? `<div class="team home">${nm}${flag}</div>`
+    : `<div class="team away">${flag}${nm}</div>`;
+}
+
+function renderMatch(m){
+  const locked = isLocked(m.kickoff) || !m.home_team || !m.away_team;
+  const live = m.status==='IN_PLAY';
+  const finished = m.status==='FINISHED';
+  let stateHtml = '';
+  if(finished) stateHtml = `<span class="state locked">Final ${m.home_score}-${m.away_score}</span>`;
+  else if(live) stateHtml = `<span class="state live">En juego</span>`;
+  else if(isLocked(m.kickoff)) stateHtml = `<span class="state locked">Cerrado</span>`;
+  else if(!m.home_team||!m.away_team) stateHtml = `<span class="state locked">Por definir</span>`;
+  else stateHtml = `<span class="state open">Abierto</span>`;
+
+  const p = preds[m.id] || {};
+  const dis = locked ? 'disabled' : '';
+  const hv = p.home_pred ?? '';
+  const av = p.away_pred ?? '';
+  const hasPred = hv!=='' && av!=='';
+  const saveHtml = hasPred
+    ? `<span class="savestate ok" id="saved-${m.id}">✓ Guardado</span>`
+    : (!locked
+        ? `<span class="savestate pending" id="saved-${m.id}">Sin guardar</span>`
+        : `<span class="savestate" id="saved-${m.id}"></span>`);
+  return `
+  <div class="match ${hasPred?'is-saved':''}" data-id="${m.id}">
+    <div class="top">
+      <span class="when">${fmtWhen(m.kickoff)} hs</span>
+      <span style="display:flex;gap:8px;align-items:center">
+        ${saveHtml}${stateHtml}
+      </span>
+    </div>
+    <div class="score-row">
+      ${teamHtml(m.home_team,'home')}
+      <input class="goal" id="h-${m.id}" type="number" min="0" inputmode="numeric" value="${hv}" ${dis}>
+      <span class="dash">–</span>
+      <input class="goal" id="a-${m.id}" type="number" min="0" inputmode="numeric" value="${av}" ${dis}>
+      ${teamHtml(m.away_team,'away')}
+    </div>
+    ${finished ? `<a class="match-detail" href="partido.html?match=${m.id}">Ver puntos de todos →</a>` : ''}
+  </div>`;
+}
+
+function wireMatch(m){
+  const h = document.getElementById('h-'+m.id);
+  const a = document.getElementById('a-'+m.id);
+  if(!h||!a||h.disabled) return;
+  const onInput = ()=>{
+    const tag = document.getElementById('saved-'+m.id);
+    clearTimeout(saveTimers[m.id]);
+    if(h.value!=='' && a.value!==''){
+      if(tag){ tag.className = 'savestate saving'; tag.textContent = 'Guardando…'; }
+      saveTimers[m.id] = setTimeout(()=>savePrediction(m.id, h.value, a.value), 650);
+    }else{
+      // Se vació al menos un casillero -> borrar la predicción guardada (si la había)
+      if(tag){ tag.className = 'savestate saving'; tag.textContent = 'Actualizando…'; }
+      saveTimers[m.id] = setTimeout(()=>clearPrediction(m.id), 650);
+    }
+  };
+  h.addEventListener('input', onInput);
+  a.addEventListener('input', onInput);
+}
+
+async function savePrediction(matchId, hv, av){
+  if(hv==='' || av==='') return;            // necesita los dos goles
+  const home = Math.max(0, parseInt(hv,10)||0);
+  const away = Math.max(0, parseInt(av,10)||0);
+  const { error } = await sb.from('predictions')
+    .upsert({ entry_id: Number(ENTRY_ID), match_id: matchId, home_pred: home, away_pred: away },
+            { onConflict: 'entry_id,match_id' });
+  const tag = document.getElementById('saved-'+matchId);
+  const card = document.querySelector(`.match[data-id="${matchId}"]`);
+  if(error){
+    if(tag){ tag.className = 'savestate err'; tag.textContent = '⚠ No se guardó'; }
+    return;
+  }
+  preds[matchId] = { home_pred: home, away_pred: away };
+  if(tag){ tag.className = 'savestate ok'; tag.textContent = '✓ Guardado'; }
+  if(card) card.classList.add('is-saved');
+}
+
+// Borra la predicción de un partido (cuando el usuario vacía los casilleros)
+async function clearPrediction(matchId){
+  const tag = document.getElementById('saved-'+matchId);
+  const card = document.querySelector(`.match[data-id="${matchId}"]`);
+  if(!preds[matchId]){            // nunca hubo nada guardado
+    if(card) card.classList.remove('is-saved');
+    if(tag){ tag.className = 'savestate pending'; tag.textContent = 'Sin guardar'; }
+    return;
+  }
+  const { data, error } = await sb.from('predictions')
+    .delete()
+    .eq('entry_id', Number(ENTRY_ID))
+    .eq('match_id', matchId)
+    .select();
+  if(error || !data || !data.length){
+    if(tag){ tag.className = 'savestate err'; tag.textContent = '⚠ No se pudo borrar'; }
+    return;
+  }
+  delete preds[matchId];
+  if(card) card.classList.remove('is-saved');
+  if(tag){ tag.className = 'savestate pending'; tag.textContent = 'Sin guardar'; }
+}
+
+// ---------- Especiales ----------
+async function renderSpecials(userId){
+  // El bloque queda oculto hasta que se elige la pestaña "Especiales"
+  const locked = minKickoff ? (nowMs() >= (new Date(minKickoff).getTime() - lockMin*60000)) : false;
+  const lockEl = document.getElementById('sp-lock');
+  if(locked){
+    lockEl.className = 'lock-note closed';
+    lockEl.textContent = 'Los especiales ya están cerrados (arrancaron los playoffs).';
+  }else{
+    lockEl.className = 'lock-note';
+    lockEl.textContent = minKickoff
+      ? `Se cierran el ${fmtWhen(minKickoff)} hs (15 min antes del primer partido). Hay que cargar los 5.`
+      : 'Carga los 5 antes del primer partido.';
+  }
+
+  // equipos para los dropdowns
+  const { data: teams } = await sb.from('teams').select('name').order('name');
+  const opts = '<option value="">— Elige —</option>' +
+    (teams||[]).map(t=>`<option value="${escapeHtml(t.name)}">${escapeHtml(t.name)}</option>`).join('');
+  ['sp-champion','sp-runner','sp-third'].forEach(id=>document.getElementById(id).innerHTML = opts);
+  if(!teams || !teams.length){
+    document.getElementById('sp-champion').innerHTML = '<option value="">(equipos aún no cargados)</option>';
+  }
+
+  // especiales ya guardados
+  const { data: sp } = await sb.from('special_predictions').select('*').eq('entry_id', ENTRY_ID).maybeSingle();
+  if(sp){
+    document.getElementById('sp-champion').value = sp.champion||'';
+    document.getElementById('sp-runner').value = sp.runner_up||'';
+    document.getElementById('sp-third').value = sp.third||'';
+    document.getElementById('sp-mvp').value = sp.mvp||'';
+    document.getElementById('sp-scorer').value = sp.top_scorer||'';
+  }
+
+  const inputs = ['sp-champion','sp-runner','sp-third','sp-mvp','sp-scorer'].map(id=>document.getElementById(id));
+  const saveBtn = document.getElementById('sp-save');
+
+  if(locked){
+    inputs.forEach(el=>el.disabled = true);
+    saveBtn.disabled = true; saveBtn.textContent = 'Cerrado';
+    return;
+  }
+
+  function check(){
+    const allFilled = inputs.every(el=>el.value.trim()!=='');
+    saveBtn.disabled = !allFilled;
+    saveBtn.textContent = allFilled ? 'Guardar los 5 especiales' : 'Faltan campos por completar';
+  }
+  inputs.forEach(el=>el.addEventListener('input', check));
+  window.recheckSpecials = check;
+  check();
+
+  saveBtn.onclick = async ()=>{
+    saveBtn.disabled = true; saveBtn.textContent = 'Guardando…';
+    const { error } = await sb.from('special_predictions').upsert({
+      entry_id: Number(ENTRY_ID),
+      champion: document.getElementById('sp-champion').value.trim(),
+      runner_up: document.getElementById('sp-runner').value.trim(),
+      third: document.getElementById('sp-third').value.trim(),
+      mvp: document.getElementById('sp-mvp').value.trim(),
+      top_scorer: document.getElementById('sp-scorer').value.trim(),
+    }, { onConflict: 'entry_id' });
+    const msg = document.getElementById('sp-msg');
+    if(error){
+      msg.className = 'sp-msg show err';
+      msg.textContent = /lock|cerr|policy|row-level/i.test(error.message)
+        ? 'Ya pasó el cierre de los especiales.' : ('No se pudo guardar: '+error.message);
+    }else{
+      msg.className = 'sp-msg show ok'; msg.textContent = '✓ Especiales guardados';
+    }
+    check();
+  };
+}
+
+init();
+</script>
+</body>
+</html>

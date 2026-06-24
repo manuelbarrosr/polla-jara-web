@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reglas y puntajes — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .rule{display:grid;grid-template-columns:64px 1fr;gap:16px;align-items:center;padding:16px;border-bottom:1px solid var(--line)}
+  .rule:last-child{border-bottom:0}
+  .rule .pts{font-family:var(--score);font-size:2.4rem;line-height:.9;color:var(--field);text-align:center}
+  .rule .pts.coral{color:var(--coral)}
+  .rule h3{margin:0 0 2px;font-size:1rem}
+  .rule p{margin:0;color:var(--muted);font-size:.88rem}
+  .ej{background:#F3F7F4;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:.85rem;color:var(--muted)}
+  .ej b{color:var(--ink)}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="section">
+    <p class="eyebrow">Cómo se juega</p>
+    <h2 class="h-sec">Puntajes por partido</h2>
+    <div class="card">
+      <div class="rule"><div class="pts coral">9</div>
+        <div><h3>Predicción única</h3><p>Aciertas el marcador exacto y eres el único que lo puso.</p></div></div>
+      <div class="rule"><div class="pts">5</div>
+        <div><h3>Resultado acertado</h3><p>Aciertas el marcador exacto, pero alguien más también lo puso.</p></div></div>
+      <div class="rule"><div class="pts">2</div>
+        <div><h3>Tendencia acertada</h3><p>Le achuntas a quién gana (o al empate), aunque no al marcador.</p></div></div>
+      <div class="rule"><div class="pts">1</div>
+        <div><h3>Gol acertado</h3><p>Aciertas los goles de uno de los equipos. Suma aparte, aunque hayas errado la tendencia.</p></div></div>
+    </div>
+    <div class="ej">
+      <p><b>Ejemplo:</b> predices Holanda 1–3 Egipto y termina 0–3. Aciertas la tendencia (+2) y los goles de Egipto (+1) = <b>3 puntos</b>.</p>
+      <p style="margin-top:8px"><b>Otro:</b> predices Argentina 1–0 Turquía y termina 0–0. No aciertas la tendencia, pero sí los goles de Turquía (+1) = <b>1 punto</b>.</p>
+      <p style="margin-top:8px">Se cuenta siempre el marcador a los <b>120 minutos</b>: si se define por penales, vale el empate.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Antes de que arranque</p>
+    <h2 class="h-sec">Pronósticos especiales</h2>
+    <div class="card">
+      <div class="rule"><div class="pts">10</div><div><h3>Campeón</h3></div></div>
+      <div class="rule"><div class="pts">6</div><div><h3>Subcampeón</h3></div></div>
+      <div class="rule"><div class="pts">4</div><div><h3>Tercer lugar</h3></div></div>
+      <div class="rule"><div class="pts">5</div><div><h3>MVP del torneo</h3></div></div>
+      <div class="rule"><div class="pts">5</div><div><h3>Goleador</h3></div></div>
+    </div>
+    <div class="ej">
+      <p>Los 5 especiales se cargan <b>juntos y completos</b>, hasta <b>15 minutos antes del primer partido</b> de playoffs. Si no los cargas a tiempo, quedan en blanco.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Para cada partido</p>
+    <h2 class="h-sec">El cierre</h2>
+    <div class="card" style="padding:18px">
+      <p style="margin:0;color:var(--muted)">Cada pronóstico de partido se puede cargar o cambiar hasta <b style="color:var(--ink)">15 minutos antes</b> del horario de ese partido. Después, queda cerrado.</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+  (async ()=>{ const r = await getProfile(); if(r.profile) paintTopbar(r.profile); })();
+</script>
+</body>
+</html>

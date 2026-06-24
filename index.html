@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ---- Dashboard: tickets + pozo en 3 columnas ---- */
+  .dash-titles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;margin-bottom:14px}
+  .dash-titles .h-sec{margin:0}
+  .t-tickets{grid-column:1 / 3}
+  .t-premios{grid-column:3}
+  .dash-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
+  #tickets-grid{display:contents}
+  .dash-grid .ticket{display:flex;flex-direction:column}
+  .dash-grid a.ticket{text-decoration:none;color:#EAF3EE;transition:transform .08s ease}
+  .dash-grid a.ticket:hover{transform:translateY(-2px)}
+  .dash-grid .ticket .name{margin:2px 0 16px}
+  .dash-grid .ticket .btn{margin-top:auto}
+
+  /* fondos con foto + tinte verde y degradé */
+  .ticket.t1{background:linear-gradient(135deg,rgba(14,110,78,.74) 0%,rgba(10,61,46,.93) 100%),url('ticket1.jpg') center/cover no-repeat}
+  .ticket.t2{background:linear-gradient(135deg,rgba(14,110,78,.74) 0%,rgba(10,61,46,.93) 100%),url('ticket2.jpg') center/cover no-repeat}
+
+  /* tarjeta "crear otro ticket" */
+  .ticket-add{background:#fff;border:1.5px dashed var(--line);border-radius:var(--r);color:var(--field);
+              display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+              cursor:pointer;font-family:var(--font);padding:18px;min-height:140px;transition:border-color .15s,background .15s}
+  .ticket-add:hover{border-color:var(--field);background:#F3F7F4}
+  .ticket-add .plus{font-family:var(--score);font-size:2.6rem;line-height:.7}
+  .ticket-add .addlbl{font-weight:700;font-size:.9rem}
+
+  /* tarjeta del pozo (mismo estilo de marcador que el ticket) */
+  .pool-cell{background:linear-gradient(135deg,rgba(20,86,140,.78) 0%,rgba(9,38,66,.94) 100%),url('pozo.jpg') center/cover no-repeat;
+             color:#EAF3EE;border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;overflow:hidden}
+  .pool-head{display:flex;align-items:center;gap:6px;font-family:var(--score);font-size:1.3rem;line-height:1;margin-bottom:10px}
+  .pool-head svg{width:16px;height:16px;color:var(--gold)}
+  .pool-stats-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
+                  margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.16)}
+  .ps{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .ps .lbl{display:flex;align-items:center;gap:4px;font-size:.57rem;letter-spacing:.02em;
+           text-transform:uppercase;color:#A8C6DE;font-weight:700;white-space:nowrap}
+  .ps .lbl svg{width:12px;height:12px;flex:0 0 auto}
+  .ps .val{font-family:var(--score);font-size:1.4rem;line-height:.9}
+  .pcz{display:flex;flex-direction:column;gap:5px;margin-top:auto}
+  .pz{display:flex;align-items:baseline;gap:8px}
+  .pz .pos{width:20px;font-family:var(--score);font-size:1.15rem;line-height:1}
+  .pz .pct{font-size:.7rem;font-weight:700;color:#A8C6DE}
+  .pz .amt{font-family:var(--score);font-size:1.3rem;line-height:1;margin-left:auto}
+  .pz.p1 .pos{color:var(--gold)} .pz.p2 .pos{color:#CFE5D9} .pz.p3 .pos{color:var(--coral)}
+
+  @media(max-width:760px){
+    .dash-titles{grid-template-columns:1fr}
+    .t-tickets{grid-column:auto}
+    .t-premios{display:none}
+    .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .pool-cell{grid-column:1 / -1}
+    .pcz{margin-top:14px}
+  }
+  @media(max-width:480px){ .dash-grid{grid-template-columns:1fr} }
+
+  /* ---- Fila: tabla general + tarjeta "Ver los partidos" ---- */
+  .table-row{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:stretch}
+  .matches-card{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:#FFF7E8;overflow:hidden;
+    background:linear-gradient(135deg,rgba(196,142,28,.82) 0%,rgba(58,38,6,.93) 100%),url('llave.jpg') center/cover no-repeat;
+    border-radius:var(--r);box-shadow:var(--shadow);padding:20px;transition:transform .08s ease}
+  .matches-card:hover{transform:translateY(-2px)}
+  .matches-card .mc-ico{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;background:rgba(255,255,255,.14)}
+  .matches-card .mc-ico svg{width:24px;height:24px}
+  .matches-card h3{font-family:var(--score);font-weight:400;font-size:1.6rem;line-height:1;margin:4px 0 0}
+  .matches-card p{margin:0;font-size:.85rem;line-height:1.45;color:#F0E2C2}
+  .matches-card .mc-link{margin-top:auto;align-self:flex-start;background:var(--coral);color:#fff;
+    padding:9px 16px;border-radius:99px;font-weight:700;font-size:.85rem}
+  @media(max-width:760px){ .table-row{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE LOGIN / REGISTRO ============ -->
+<div id="auth-view" class="auth-screen" style="display:none">
+  <div class="auth-card">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <p class="auth-sub" id="auth-sub">Ingresa con tu correo y contraseña</p>
+
+    <div id="msg" class="msg"></div>
+
+    <div class="field" id="name-field" style="display:none">
+      <label>Tu nombre (como aparecerá en la tabla)</label>
+      <input id="f-name" type="text" autocomplete="name" placeholder="Ej: Manuel B.">
+    </div>
+    <div class="field">
+      <label>Correo</label>
+      <input id="f-email" type="email" autocomplete="email" placeholder="tucorreo@correo.com">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="f-pass" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+
+    <button id="btn-auth" class="btn btn-primary">Entrar</button>
+
+    <p class="switch" id="switch-line">
+      ¿No tienes cuenta? <a id="switch-link">Crea una</a>
+    </p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="app-view" style="display:none">
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+      <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+      <nav>
+        <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+        <a href="llave.html">Partidos</a>
+        <a href="tabla.html">Tabla general</a>
+        <span class="nav-sep" aria-hidden="true"></span>
+        <a href="reglas.html">Reglas y puntajes</a>
+      </nav>
+      <div class="who" id="who"></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- Tickets + Pozo (3 columnas) -->
+    <section class="section" id="tickets">
+      <div class="dash-titles">
+        <h2 class="h-sec t-tickets">Tus tickets activos</h2>
+      </div>
+      <div class="dash-grid">
+        <div id="tickets-grid"></div>
+        <div class="pool-cell">
+          <div class="pool-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3"/><path d="M12 12v3M9.5 20h5l-.5-3h-4z"/></svg>Pozo y premios</div>
+          <div class="pool-stats-row">
+            <div class="ps">
+              <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c0-3.3 2.7-5 5.5-5s5.5 1.7 5.5 5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6M17.5 15c2.2.4 3.5 1.9 3.5 5"/></svg>Jugadores</div>
+              <div class="val" id="stat-players">—</div>
+            </div>
+            <div class="ps">
+              <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a2 2 0 0 0 0 4v2a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 15.5v-2a2 2 0 0 0 0-4z"/><path d="M14 6.5v11" stroke-dasharray="2 2"/></svg>Tickets</div>
+              <div class="val" id="stat-tickets">—</div>
+            </div>
+            <div class="ps">
+              <div class="lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3h7l-2 3.5h-3z"/><path d="M13.2 6.6C16.4 7.8 19 11 19 15c0 3-2 5-5 5h-4c-3 0-5-2-5-5 0-4 2.6-7.2 5.8-8.4"/><path d="M12 10.5v6"/><path d="M14 12h-2.8a1.4 1.4 0 0 0 0 2.8h1.6a1.4 1.4 0 0 1 0 2.8H10"/></svg>Pozo</div>
+              <div class="val" id="stat-pot">—</div>
+            </div>
+          </div>
+          <div class="pcz">
+            <div class="pz p1"><span class="pos">1°</span><span class="pct">Primer lugar</span><span class="amt" id="prize-1">—</span></div>
+            <div class="pz p2"><span class="pos">2°</span><span class="pct">Segundo lugar</span><span class="amt" id="prize-2">—</span></div>
+            <div class="pz p3"><span class="pos">3°</span><span class="pct">Tercer lugar</span><span class="amt" id="prize-3">—</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mini tabla + acceso a partidos -->
+    <section class="section">
+      <p class="eyebrow">Cómo va la cosa</p>
+      <h2 class="h-sec">Tabla general</h2>
+      <div class="table-row">
+        <div class="card board">
+          <div class="board-head"><div>#</div><div>Jugador</div><div>Pts</div></div>
+          <div class="board-scroll" id="board-rows"></div>
+        </div>
+        <a class="matches-card" href="llave.html">
+          <span class="mc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h4v12H4"/><path d="M8 12h3"/><path d="M11 9h5v6h-5"/><path d="M16 12h4"/></svg></span>
+          <h3>Ver los partidos</h3>
+          <p>Accede a la vista de llave para ver los resultados reales y las predicciones de los demás.</p>
+          <span class="mc-link">Ir a la llave →</span>
+        </a>
+      </div>
+      <div style="margin-top:12px"><a class="btn btn-sm" href="tabla.html">Ver tabla completa →</a></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Supabase + nuestra config + helpers -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+// ---------- Estado del formulario ----------
+let mode = 'login'; // 'login' | 'register'
+
+const msg = document.getElementById('msg');
+function showMsg(text, kind){ msg.textContent = text; msg.className = 'msg show ' + kind; }
+function clearMsg(){ msg.className = 'msg'; }
+
+function setMode(m){
+  mode = m;
+  const reg = m === 'register';
+  document.getElementById('auth-sub').textContent = reg ? 'Crea tu cuenta para jugar' : 'Ingresa con tu correo y contraseña';
+  document.getElementById('name-field').style.display = reg ? 'block' : 'none';
+  document.getElementById('btn-auth').textContent = reg ? 'Crear cuenta' : 'Entrar';
+  document.getElementById('switch-line').innerHTML = reg
+    ? '¿Ya tienes cuenta? <a id="switch-link">Ingresa</a>'
+    : '¿No tienes cuenta? <a id="switch-link">Crea una</a>';
+  document.getElementById('switch-link').onclick = () => setMode(reg ? 'login' : 'register');
+  clearMsg();
+}
+
+document.getElementById('switch-link').onclick = () => setMode('register');
+
+document.getElementById('btn-auth').onclick = async () => {
+  const email = document.getElementById('f-email').value.trim();
+  const pass  = document.getElementById('f-pass').value;
+  const name  = document.getElementById('f-name').value.trim();
+  if(!email || !pass){ showMsg('Completa tu correo y contraseña.', 'err'); return; }
+
+  const btn = document.getElementById('btn-auth');
+  btn.disabled = true; btn.textContent = 'Un momento…';
+
+  try{
+    if(mode === 'register'){
+      if(!name){ showMsg('Escribe tu nombre.', 'err'); return; }
+      const { error } = await sb.auth.signUp({
+        email, password: pass, options: { data: { full_name: name } }
+      });
+      if(error) throw error;
+    }else{
+      const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if(error) throw error;
+    }
+    // tras autenticar, verificamos que esté habilitado (perfil creado)
+    await route();
+  }catch(e){
+    showMsg(traducirError(e.message), 'err');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = mode === 'register' ? 'Crear cuenta' : 'Entrar';
+  }
+};
+
+function traducirError(m){
+  if(/already registered/i.test(m)) return 'Ese correo ya tiene cuenta. Prueba ingresar.';
+  if(/Invalid login/i.test(m)) return 'Correo o contraseña incorrectos.';
+  if(/Password should be/i.test(m)) return 'La contraseña es muy corta (mínimo 6).';
+  return m;
+}
+
+// ---------- Ruteo: ¿login o dashboard? ----------
+async function route(){
+  const { user, profile } = await getProfile();
+
+  if(!user){
+    document.getElementById('app-view').style.display = 'none';
+    document.getElementById('auth-view').style.display = 'grid';
+    return;
+  }
+  if(!profile){
+    // Autenticado pero NO habilitado (correo no está en la lista de pagados)
+    await sb.auth.signOut();
+    document.getElementById('app-view').style.display = 'none';
+    document.getElementById('auth-view').style.display = 'grid';
+    showMsg('Tu correo no está habilitado todavía. Si ya pagaste tu cuota, avísale al organizador.', 'err');
+    return;
+  }
+  // Habilitado → dashboard
+  document.getElementById('auth-view').style.display = 'none';
+  document.getElementById('app-view').style.display = 'block';
+  paintTopbar(profile);
+  await Promise.all([ loadTickets(user), loadPool(), loadBoard() ]);
+}
+
+// ---------- Pozo y premios ----------
+const TICKET_PRICE = 5000; // CLP por ticket
+const clp = n => '$' + Math.round(n).toLocaleString('es-CL');
+
+async function loadPool(){
+  const { data, error } = await sb.from('entries').select('user_id');
+  if(error || !data){ return; }
+  const tickets = data.length;
+  const players = new Set(data.map(e=>e.user_id)).size;
+  const pot = tickets * TICKET_PRICE;
+  document.getElementById('stat-players').textContent = players;
+  document.getElementById('stat-tickets').textContent = tickets;
+  document.getElementById('stat-pot').textContent = clp(pot);
+  document.getElementById('prize-1').textContent = clp(pot*0.60);
+  document.getElementById('prize-2').textContent = clp(pot*0.30);
+  document.getElementById('prize-3').textContent = clp(pot*0.10);
+}
+
+// ---------- Tickets ----------
+async function loadTickets(user){
+  const grid = document.getElementById('tickets-grid');
+  const { data, error } = await sb.from('entries').select('id,nombre').eq('user_id', user.id).order('id');
+  if(error){ grid.innerHTML = '<p class="muted">No se pudieron cargar tus tickets.</p>'; return; }
+  const tickets = data || [];
+
+  let html = tickets.map((e,i)=>`
+    <a class="ticket ${i===0?'t1':'t2'}" href="predicciones.html?ticket=${e.id}">
+      <div class="num">${i+1}</div>
+      <div class="lbl">Ticket ${i+1}</div>
+      <div class="name">${escapeHtml(e.nombre)}</div>
+      <span class="btn btn-coral">Ir a mis predicciones →</span>
+    </a>`).join('');
+
+  // Tarjeta para crear otro ticket (nadie tendrá más de 2)
+  if(tickets.length < 2){
+    html += `<button class="ticket-add" id="card-add-ticket"><span class="plus">+</span><span class="addlbl">Crear otro ticket</span></button>`;
+  }
+  grid.innerHTML = html;
+
+  const addCard = document.getElementById('card-add-ticket');
+  if(addCard) addCard.onclick = addTicket;
+}
+
+async function addTicket(){
+  const user = await getUser();
+  // Nombre automático: "<nombre del usuario> <número>" (ej. "Manuel Barros 2")
+  const { data: prof } = await sb.from('profiles').select('display_name').eq('id', user.id).maybeSingle();
+  const base = (prof?.display_name || 'Ticket').trim();
+  const { data: ents } = await sb.from('entries').select('id').eq('user_id', user.id);
+  const nombre = `${base} ${(ents?.length || 0) + 1}`;
+
+  if(!confirm(`Se creará un nuevo ticket a nombre de "${nombre}". ¿Continuar?`)) return;
+
+  const { error } = await sb.from('entries').insert({ user_id: user.id, nombre });
+  if(error){
+    alert(/límite|limit/i.test(error.message)
+      ? 'Ya alcanzaste tu límite de tickets pagados.'
+      : ('No se pudo crear: ' + error.message));
+    return;
+  }
+  await loadTickets(user);
+}
+
+// ---------- Mini tabla ----------
+async function loadBoard(){
+  const box = document.getElementById('board-rows');
+  const { data, error } = await sb.from('leaderboard').select('planilla,dueno,total_points');
+  if(error){ box.innerHTML = '<div class="notice">No se pudo cargar la tabla.</div>'; return; }
+  if(!data.length){ box.innerHTML = '<div class="notice"><b>Todavía no hay puntos</b>El torneo no arrancó.</div>'; return; }
+
+  box.innerHTML = data.map((r,i)=>`
+    <div class="row ${i===0?'top1':''} ${i===1?'top2':''} ${i===2?'top3':''}">
+      <div class="rank">${i+1}</div>
+      <div class="nm">${escapeHtml(r.planilla)}</div>
+      <div class="pts">${r.total_points}<span>pts</span></div>
+    </div>`).join('');
+}
+
+// arranca
+setMode('login');
+route();
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabla general — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .search{width:100%;max-width:340px;padding:11px 14px;border:1px solid var(--line);border-radius:99px;
+          font-family:var(--font);font-size:.92rem;background:var(--card);margin-bottom:18px}
+  .search:focus{outline:none;border-color:var(--field);box-shadow:0 0 0 3px rgba(14,110,78,.15)}
+
+  .player{background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);
+          padding:9px 13px;margin-bottom:7px;display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center}
+  .player .rank{font-family:var(--score);font-size:1.4rem;line-height:.9;text-align:center;color:var(--muted)}
+  .player.r1 .rank{color:var(--gold)} .player.r2 .rank,.player.r3 .rank{color:var(--field)}
+  .player .info{min-width:0}
+  .player .nm{font-weight:800;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player .by{color:var(--muted);font-size:.72rem}
+  .player .tot{font-family:var(--score);font-size:1.4rem;line-height:.9;text-align:right;white-space:nowrap}
+  .player .tot span{font-family:var(--font);font-size:.62rem;color:var(--muted);display:block;font-weight:600}
+
+  .chips{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:5px;margin-top:1px}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;color:var(--ink);
+        background:#F3F6F2;border:1px solid var(--line);border-radius:99px;padding:2px 8px}
+  .chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .chip b{font-family:var(--score);font-size:.82rem;font-weight:400}
+  .c-unica i{background:var(--coral)} .c-exacto i{background:var(--field)}
+  .c-tend i{background:#3E8E72} .c-gol i{background:#9FBDAF} .c-esp i{background:var(--gold)}
+
+  .empty{text-align:center;color:var(--muted);padding:50px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="section">
+    <p class="eyebrow">El ranking</p>
+    <h1 class="h-sec">Tabla general</h1>
+    <input class="search" id="search" type="text" placeholder="Buscar jugador…">
+    <div id="list"><div class="empty">Cargando…</div></div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+let rows = [];
+
+async function init(){
+  const auth = await requireProfile();
+  if(!auth) return;
+  paintTopbar(auth.profile);
+
+  const { data, error } = await sb.from('leaderboard_detalle').select('*');
+  if(error){ document.getElementById('list').innerHTML = '<div class="empty">No se pudo cargar la tabla.</div>'; return; }
+  rows = data || [];
+  render(rows);
+
+  document.getElementById('search').addEventListener('input', e=>{
+    const q = e.target.value.trim().toLowerCase();
+    render(rows.filter(r =>
+      (r.planilla||'').toLowerCase().includes(q) || (r.dueno||'').toLowerCase().includes(q)));
+  });
+}
+
+function chip(cls, label, val){
+  return `<span class="chip ${cls}"><i></i>${label} <b>${val}</b></span>`;
+}
+
+function render(data){
+  const box = document.getElementById('list');
+  if(!data.length){ box.innerHTML = '<div class="empty">Sin resultados.</div>'; return; }
+  box.innerHTML = data.map((r,i)=>{
+    // el ranking real (no el del filtro): lo tomamos de la posición en 'rows'
+    const realRank = rows.indexOf(r) + 1;
+    const rc = realRank<=3 ? 'r'+realRank : '';
+    return `
+    <div class="player ${rc}">
+      <div class="rank">${realRank}</div>
+      <div class="info">
+        <div class="nm">${escapeHtml(r.planilla)}</div>
+      </div>
+      <div class="tot">${r.total_points}<span>puntos</span></div>
+      <div class="chips">
+        ${chip('c-unica','Única', r.p_unica)}
+        ${chip('c-exacto','Exacto', r.p_exacto)}
+        ${chip('c-tend','Tendencia', r.p_tendencia)}
+        ${chip('c-gol','Gol', r.p_gol)}
+        ${chip('c-esp','Especiales', r.p_especiales)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pronósticos del partido — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .crumb{font-size:.85rem;margin:18px 0 6px}
+  .crumb a{color:var(--field);font-weight:600;text-decoration:none}
+  .head{background:linear-gradient(135deg,var(--field) 0%,var(--field-deep) 100%);color:#EAF3EE;
+        border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:6px}
+  .head .when{font-size:.74rem;color:#A9D2BF;font-weight:700;margin-bottom:8px}
+  .head .vs{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .head .vs .t{font-weight:800;font-size:1.1rem;flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .head .vs .t.r{justify-content:flex-end;text-align:right}
+  .head .vs .sc{font-family:var(--score);font-size:2.4rem;line-height:.8;padding:0 6px}
+  .head .vs .sc.tbd{font-size:1.1rem;color:#A9D2BF;font-family:var(--font);font-weight:700}
+
+  .notice{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+          text-align:center;padding:46px 24px;color:var(--muted);margin-top:14px}
+  .notice b{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:6px}
+
+  .pred{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+        background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);
+        padding:12px 15px;margin-bottom:9px}
+  .pred .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pred .nm small{display:block;color:var(--muted);font-weight:500;font-size:.76rem}
+  .pred .guess{font-family:var(--score);font-size:1.4rem;letter-spacing:.04em}
+  .pred .pt{font-family:var(--score);font-size:1.3rem;min-width:34px;text-align:center;
+            background:#F3F6F2;border-radius:8px;padding:2px 6px}
+  .pred .pt.z{color:var(--muted)}
+  .countlbl{font-size:.82rem;color:var(--muted);margin:16px 0 10px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="crumb"><a href="llave.html">← Partidos</a></p>
+  <div id="content"><div class="notice">Cargando…</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const MATCH_ID = params.get('match');
+
+function fmtWhen(iso){
+  return new Date(iso).toLocaleString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+async function init(){
+  const auth = await requireProfile();
+  if(!auth) return;
+  paintTopbar(auth.profile);
+
+  if(!MATCH_ID){ document.getElementById('content').innerHTML = '<div class="notice">Falta el partido.</div>'; return; }
+
+  const { data: m } = await sb.from('matches').select('*').eq('id', MATCH_ID).maybeSingle();
+  if(!m){ document.getElementById('content').innerHTML = '<div class="notice">No se encontró el partido.</div>'; return; }
+
+  const started = new Date(m.kickoff).getTime() <= Date.now() || m.status==='IN_PLAY' || m.status==='FINISHED';
+  const finished = m.status==='FINISHED' && m.home_score!=null;
+
+  // banderas
+  const { data: ts } = await sb.from('teams').select('name,crest');
+  const flags = Object.fromEntries((ts||[]).map(t=>[t.name, t.crest]));
+  const hf = m.home_team && flags[m.home_team] ? `<img class="flag" src="${flags[m.home_team]}" alt="">` : '';
+  const af = m.away_team && flags[m.away_team] ? `<img class="flag" src="${flags[m.away_team]}" alt="">` : '';
+
+  // cabecera del partido
+  const scoreHtml = finished
+    ? `<span class="sc">${m.home_score}</span><span class="sc">${m.away_score}</span>`
+    : `<span class="sc tbd">${m.status==='IN_PLAY'?'en juego':'vs'}</span>`;
+  const head = `
+    <div class="head">
+      <div class="when">${fmtWhen(m.kickoff)} hs</div>
+      <div class="vs">
+        <span class="t">${hf}${escapeHtml(m.home_team||'Por definir')}</span>
+        ${scoreHtml}
+        <span class="t r">${escapeHtml(m.away_team||'Por definir')}${af}</span>
+      </div>
+    </div>`;
+
+  if(!started){
+    document.getElementById('content').innerHTML = head +
+      `<div class="notice"><b>Todavía no</b>No es posible ver las predicciones del resto antes del partido.</div>`;
+    return;
+  }
+
+  // config (valores de puntaje, por si calculamos puntos)
+  const { data: cfg } = await sb.from('config').select('key,value');
+  const C = Object.fromEntries((cfg||[]).map(c=>[c.key,c.value]));
+  const P = { unique:C.pts_unique??9, exact:C.pts_exact??5, tend:C.pts_tendencia??2, gol:C.pts_gol??1 };
+
+  // pronósticos de todos para este partido
+  const { data: preds, error } = await sb
+    .from('predictions')
+    .select('home_pred,away_pred,entries(nombre,profiles(display_name))')
+    .eq('match_id', MATCH_ID);
+
+  if(error){ document.getElementById('content').innerHTML = head + '<div class="notice">No se pudieron cargar los pronósticos.</div>'; return; }
+
+  const rows = preds || [];
+  // para "única": cuántos pusieron el marcador real exacto
+  let nExact = 0;
+  if(finished) nExact = rows.filter(r=>r.home_pred===m.home_score && r.away_pred===m.away_score).length;
+
+  function pts(r){
+    if(!finished) return null;
+    const ph=r.home_pred, pa=r.away_pred, hs=m.home_score, as=m.away_score;
+    if(ph===hs && pa===as) return nExact===1 ? P.unique : P.exact;
+    let p=0;
+    if(Math.sign(ph-pa)===Math.sign(hs-as)) p+=P.tend;
+    if(ph===hs || pa===as) p+=P.gol;
+    return p;
+  }
+
+  rows.sort((a,b)=> finished ? (pts(b)-pts(a)) :
+    (((a.entries?.nombre)||'').localeCompare((b.entries?.nombre)||'')));
+
+  const list = rows.map(r=>{
+    const nombre = r.entries?.nombre || '—';
+    const dueno = r.entries?.profiles?.display_name || '';
+    const p = pts(r);
+    const ptHtml = finished ? `<span class="pt ${p===0?'z':''}">${p}</span>` : '';
+    return `
+      <div class="pred" style="grid-template-columns:1fr auto ${finished?'auto':''}">
+        <div class="nm">${escapeHtml(nombre)}</div>
+        <div class="guess">${r.home_pred}-${r.away_pred}</div>
+        ${ptHtml}
+      </div>`;
+  }).join('');
+
+  document.getElementById('content').innerHTML = head +
+    `<p class="countlbl">${rows.length} pronóstico${rows.length===1?'':'s'}${finished?' · ordenados por puntos':''}</p>` +
+    (rows.length ? list : '<div class="notice">Nadie pronosticó este partido.</div>');
+}
+
+init();
+</script>
+</body>
+</html>

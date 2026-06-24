@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partidos — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .hint{font-size:.8rem;color:var(--muted);margin:0 0 16px}
+  .bracket{display:flex;align-items:stretch;overflow-x:auto;padding:2px 2px 22px;-webkit-overflow-scrolling:touch}
+  .round{display:flex;flex-direction:column;flex:0 0 158px;margin-right:34px}
+  .round.is-last{margin-right:0}
+  .round-head{font-family:var(--score);font-size:1.05rem;color:var(--field-deep);letter-spacing:.05em;
+              text-align:center;padding:0 0 6px;border-bottom:2px solid var(--line);margin-bottom:8px}
+  .round-body{display:flex;flex-direction:column;flex:1}
+  .match-cell{flex:1 1 0;min-height:92px;display:flex;flex-direction:column;justify-content:center;padding:5px 0;position:relative}
+
+  /* conectores en codo */
+  .round:not(.is-last) .match-cell::after{content:"";position:absolute;left:100%;top:50%;
+    width:34px;height:2px;background:var(--line);transform:translateY(-1px)}
+  .round:not(.is-last) .match-cell:nth-child(odd)::before{content:"";position:absolute;
+    left:calc(100% + 34px);top:50%;height:50%;width:2px;background:var(--line)}
+  .round:not(.is-last) .match-cell:nth-child(even)::before{content:"";position:absolute;
+    left:calc(100% + 34px);bottom:50%;height:50%;width:2px;background:var(--line)}
+
+  /* tarjeta de partido */
+  .bm{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+      line-height:1.15;box-shadow:var(--shadow);cursor:pointer;transition:border-color .15s,transform .07s ease}
+  .bm:hover{border-color:var(--field);transform:translateY(-1px)}
+  .bm .when{display:flex;justify-content:center;align-items:center;gap:6px;background:#EEF1ED;color:var(--muted);
+            font-size:.64rem;font-weight:700;padding:3px 8px;border-bottom:1px solid var(--line)}
+  .bm .when .live{color:var(--coral)}
+  .bm .ln{display:flex;align-items:center;gap:7px;padding:5px 9px}
+  .bm .ln + .ln{border-top:1px dashed var(--line)}
+  .bm .ln .bflag{height:13px;width:auto;border-radius:2px;flex:0 0 auto;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+  .bm .ln .t{font-weight:700;font-size:.8rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bm .ln .t.tbd{color:var(--muted);font-weight:600;font-style:italic}
+  .bm .ln .g{font-family:var(--score);font-size:1.05rem;min-width:16px;text-align:center;color:var(--ink)}
+  .bm .ln .g.empty{color:#CBD3C9}
+  .bm .ln.win .t{color:var(--field)}
+  .bm.final{border-color:var(--gold);box-shadow:0 0 0 2px rgba(231,181,59,.3),var(--shadow)}
+  .bm.final .when{background:#F7ECCB;color:#7A5B12}
+
+  /* títulos de final y tercer puesto, en la misma columna */
+  .round.is-last .round-body{position:relative}
+  .third-cell{position:absolute;left:0;right:0;top:calc(50% + 130px)}
+  .third-h{font-family:var(--score);font-size:1.05rem;color:var(--field-deep);letter-spacing:.05em;
+           padding-bottom:10px;border-bottom:2px solid var(--line);margin-bottom:8px}
+  .final-h{position:absolute;left:0;right:0;top:calc(50% - 74px);color:#7A5B12;border-bottom-color:#E6D49A}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="section">
+    <p class="eyebrow">Resultados reales</p>
+    <h1 class="h-sec">El camino a la final</h1>
+    <p class="hint">Desliza de lado para recorrer las rondas → · Toca un partido para ver los pronósticos de todos.</p>
+    <div class="bracket" id="bracket"><div class="hint">Cargando…</div></div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+const ROUND_LABEL = {LAST_32:'16avos',LAST_16:'8vos',QUARTER_FINALS:'4tos',SEMI_FINALS:'Semis',FINAL:'Final'};
+const ROUND_ORDER = ['LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','FINAL'];
+
+function fmtWhen(iso){
+  return new Date(iso).toLocaleString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+async function init(){
+  const auth = await requireProfile();
+  if(!auth) return;
+  paintTopbar(auth.profile);
+
+  const { data: ms } = await sb.from('matches').select('*');
+  const matches = ms || [];
+
+  const { data: ts } = await sb.from('teams').select('name,crest');
+  const teamsByName = Object.fromEntries((ts||[]).map(t=>[t.name, t.crest]));
+  window.__teams = teamsByName;
+
+  const bracket = document.getElementById('bracket');
+  const present = ROUND_ORDER.filter(r => matches.some(m=>m.round===r));
+  const third = matches.filter(m=>m.round==='THIRD_PLACE');
+  bracket.innerHTML = present.map((r,ri)=>{
+    const list = matches.filter(m=>m.round===r).sort((a,b)=> a.kickoff<b.kickoff?-1:1);
+    const isLast = ri === present.length-1;
+    let inner = list.map(m=>`<div class="match-cell">${card(m, r==='FINAL')}</div>`).join('');
+    if(isLast){
+      inner += `<div class="third-h final-h">La final</div>`;
+      if(third.length){
+        inner += `<div class="third-cell"><div class="third-h">Tercer puesto</div>${third.map(m=>card(m,false)).join('')}</div>`;
+      }
+    }
+    return `<div class="round ${isLast?'is-last':''}">
+              <div class="round-head">${ROUND_LABEL[r]}</div>
+              <div class="round-body">${inner}</div>
+            </div>`;
+  }).join('');
+
+  bracket.querySelectorAll('[data-id]').forEach(el=>{
+    el.onclick = ()=> location.href = 'partido.html?match=' + el.dataset.id;
+  });
+}
+
+function teamLine(name, mine, other, finished){
+  const win = finished && mine!=null && other!=null && mine>other;
+  const cls = name ? (win?'win':'') : '';
+  const crest = name ? (window.__teams||{})[name] : null;
+  const flag = crest ? `<img class="bflag" src="${crest}" alt="">` : '';
+  const tname = name ? `<span class="t">${escapeHtml(name)}</span>` : `<span class="t tbd">Por definir</span>`;
+  const g = finished ? `<span class="g">${mine}</span>` : `<span class="g empty">·</span>`;
+  return `<div class="ln ${cls}">${flag}${tname}${g}</div>`;
+}
+
+function card(m, isFinal){
+  const finished = m.status==='FINISHED' && m.home_score!=null;
+  const live = m.status==='IN_PLAY';
+  const when = live ? `<span class="live">● En juego</span>` : `<span>${fmtWhen(m.kickoff)} hs</span>`;
+  return `
+  <div class="bm ${isFinal?'final':''}" data-id="${m.id}">
+    <div class="when">${when}</div>
+    ${teamLine(m.home_team, m.home_score, m.away_score, finished)}
+    ${teamLine(m.away_team, m.away_score, m.home_score, finished)}
+  </div>`;
+}
+
+init();
+</script>
+</body>
+</html>
