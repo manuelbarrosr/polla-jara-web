@@ -350,6 +350,14 @@ async function loadBoard(){
     </div>`).join('');
 }
 
+// Enter en cualquier campo del login = apretar "Entrar"
+['f-name','f-email','f-pass'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('btn-auth').click(); }
+  });
+});
+
 // arranca
 setMode('login');
 route();
