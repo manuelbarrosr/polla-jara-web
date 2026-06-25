@@ -59,13 +59,29 @@
     .t-tickets{grid-column:auto}
     .t-premios{display:none}
     .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .pool-cell{grid-column:1 / -1}
-    .pcz{margin-top:14px}
+    /* tickets: botón naranjo en una sola línea */
+    .dash-grid .ticket{padding:14px}
+    .dash-grid .ticket .btn{font-size:.62rem;padding:9px 5px;white-space:nowrap}
+    /* pozo a ancho completo y SÚPER COMPACTO */
+    .pool-cell{grid-column:1 / -1;padding:10px 12px}
+    .pool-head{font-size:1rem;margin-bottom:6px}
+    .pool-stats-row{gap:5px;margin-bottom:6px;padding-bottom:6px}
+    .ps .lbl{font-size:.5rem;gap:3px}
+    .ps .lbl svg{width:10px;height:10px}
+    .ps .val{font-size:1.05rem}
+    .pcz{margin-top:6px;gap:3px}
+    .pz .pos{font-size:.9rem;width:16px}
+    .pz .pct{font-size:.6rem}
+    .pz .amt{font-size:1rem}
   }
   @media(max-width:480px){ .dash-grid{grid-template-columns:1fr} }
 
   /* ---- Fila: tabla general + tarjeta "Ver los partidos" ---- */
-  .table-row{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:stretch}
+  .table-row{display:grid;grid-template-columns:1fr 320px;gap:12px 20px;align-items:stretch;
+             grid-template-areas:"board cards" "vertabla ."}
+  .table-row .board{grid-area:board}
+  .table-row .ver-tabla{grid-area:vertabla;justify-self:start}
+  .table-row .matches-card{grid-area:cards}
   .matches-card{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:#FFF7E8;overflow:hidden;
     background:linear-gradient(135deg,rgba(196,142,28,.82) 0%,rgba(58,38,6,.93) 100%),url('llave.jpg') center/cover no-repeat;
     border-radius:var(--r);box-shadow:var(--shadow);padding:20px;transition:transform .08s ease}
@@ -76,7 +92,7 @@
   .matches-card p{margin:0;font-size:.85rem;line-height:1.45;color:#F0E2C2}
   .matches-card .mc-link{margin-top:auto;align-self:flex-start;background:var(--coral);color:#fff;
     padding:9px 16px;border-radius:99px;font-weight:700;font-size:.85rem}
-  @media(max-width:760px){ .table-row{grid-template-columns:1fr} }
+  @media(max-width:760px){ .table-row{grid-template-columns:1fr;grid-template-areas:"board" "vertabla" "cards"} }
 
   /* ---- Modal propio (reemplaza alert/confirm del navegador) ---- */
   .modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
@@ -179,6 +195,7 @@
           <div class="board-head"><div>#</div><div>Jugador</div><div>Pts</div></div>
           <div class="board-scroll" id="board-rows"></div>
         </div>
+        <a class="btn btn-sm ver-tabla" href="tabla.html">Ver tabla completa →</a>
         <a class="matches-card" href="llave.html">
           <span class="mc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h4v12H4"/><path d="M8 12h3"/><path d="M11 9h5v6h-5"/><path d="M16 12h4"/></svg></span>
           <h3>Ver los partidos</h3>
@@ -186,7 +203,6 @@
           <span class="mc-link">Ir a la llave →</span>
         </a>
       </div>
-      <div style="margin-top:12px"><a class="btn btn-sm" href="tabla.html">Ver tabla completa →</a></div>
     </section>
 
   </div>
