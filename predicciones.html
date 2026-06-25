@@ -383,6 +383,7 @@ function renderMatch(m){
   const locked = isLocked(m.kickoff) || !m.home_team || !m.away_team;
   const live = m.status==='IN_PLAY';
   const finished = m.status==='FINISHED';
+  const started = finished || live || (new Date(m.kickoff).getTime() <= nowMs());
   let stateHtml = '';
   if(finished) stateHtml = `<span class="state final">Final ${m.home_score}-${m.away_score}</span>`;
   else if(live) stateHtml = `<span class="state live">En juego</span>`;
@@ -415,7 +416,7 @@ function renderMatch(m){
       <input class="goal" id="a-${m.id}" type="number" min="0" inputmode="numeric" value="${av}" ${dis}>
       ${teamHtml(m.away_team,'away')}
     </div>
-    ${finished ? `<a class="match-detail" href="partido.html?match=${m.id}">Ver puntos de todos →</a>` : ''}
+    ${started ? `<a class="match-detail" href="partido.html?match=${m.id}">${finished ? 'Ver puntos de todos' : 'Ver predicciones de todos'} →</a>` : ''}
   </div>`;
 }
 
