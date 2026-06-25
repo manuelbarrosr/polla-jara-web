@@ -77,6 +77,14 @@
   .matches-card .mc-link{margin-top:auto;align-self:flex-start;background:var(--coral);color:#fff;
     padding:9px 16px;border-radius:99px;font-weight:700;font-size:.85rem}
   @media(max-width:760px){ .table-row{grid-template-columns:1fr} }
+
+  /* ---- Modal propio (reemplaza alert/confirm del navegador) ---- */
+  .modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+         background:rgba(8,29,21,.55);padding:20px}
+  .modal-box{background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:390px;width:100%;padding:22px 22px 18px}
+  .modal-title{font-family:var(--score);font-weight:400;font-size:1.55rem;line-height:1;margin:0 0 10px;color:var(--ink)}
+  .modal-msg{margin:0 0 18px;color:var(--muted);font-size:.92rem;line-height:1.55}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px}
 </style>
 </head>
 <body>
@@ -181,6 +189,18 @@
       <div style="margin-top:12px"><a class="btn btn-sm" href="tabla.html">Ver tabla completa →</a></div>
     </section>
 
+  </div>
+</div>
+
+<!-- Modal propio (avisos/confirmaciones) -->
+<div id="modal" class="modal" style="display:none">
+  <div class="modal-box">
+    <h3 class="modal-title" id="modal-title">Aviso</h3>
+    <p class="modal-msg" id="modal-msg"></p>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="modal-ok">Aceptar</button>
+    </div>
   </div>
 </div>
 
@@ -315,6 +335,26 @@ async function loadTickets(user){
   if(addCard) addCard.onclick = addTicket;
 }
 
+// ---------- Modal propio (reemplaza alert/confirm del navegador) ----------
+function uiModal({title='Aviso', message='', okText='Aceptar', cancel=true}){
+  return new Promise(resolve=>{
+    const m = document.getElementById('modal');
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-msg').textContent = message;
+    const ok = document.getElementById('modal-ok');
+    const cancelBtn = document.getElementById('modal-cancel');
+    ok.textContent = okText;
+    cancelBtn.style.display = cancel ? '' : 'none';
+    m.style.display = 'flex';
+    function close(val){ m.style.display='none'; ok.onclick=null; cancelBtn.onclick=null; m.onclick=null; resolve(val); }
+    ok.onclick = ()=>close(true);
+    cancelBtn.onclick = ()=>close(false);
+    m.onclick = e=>{ if(e.target===m) close(false); };  // clic afuera = cancelar
+  });
+}
+const uiConfirm = (message, title='Confirmar')=> uiModal({title, message, okText:'Aceptar', cancel:true});
+const uiAlert   = (message, title='Aviso')=> uiModal({title, message, okText:'Entendido', cancel:false});
+
 async function addTicket(){
   const user = await getUser();
   const { data: prof } = await sb.from('profiles').select('display_name,tickets').eq('id', user.id).maybeSingle();
@@ -324,19 +364,19 @@ async function addTicket(){
 
   // ¿Le corresponden más tickets?
   if(count >= allowed){
-    alert('Tu usuario no está habilitado para crear otro ticket. Si pagaste por un segundo ticket, avísale al organizador.');
+    await uiAlert('Tu usuario no está habilitado para crear otro ticket. Si pagaste por un segundo ticket, avísale al organizador.', 'No habilitado');
     return;
   }
 
   // Nombre automático: "<nombre del usuario> <número>" (ej. "Manuel Barros 2")
   const nombre = `${(prof?.display_name || 'Ticket').trim()} ${count + 1}`;
-  if(!confirm(`Se creará un nuevo ticket a nombre de "${nombre}". ¿Continuar?`)) return;
+  if(!(await uiConfirm(`Se creará un nuevo ticket a nombre de "${nombre}". ¿Continuar?`, 'Nuevo ticket'))) return;
 
   const { error } = await sb.from('entries').insert({ user_id: user.id, nombre });
   if(error){
-    alert(/límite|limit/i.test(error.message)
+    await uiAlert(/límite|limit/i.test(error.message)
       ? 'Tu usuario no está habilitado para crear otro ticket.'
-      : ('No se pudo crear: ' + error.message));
+      : ('No se pudo crear: ' + error.message), 'No se pudo crear');
     return;
   }
   await loadTickets(user);
