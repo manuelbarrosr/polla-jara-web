@@ -273,7 +273,7 @@ function renderRounds(){
   const content = document.getElementById('content');
   content.innerHTML = `<div class="rounds" id="rounds"></div>
     <div class="match-filters" id="filter-wrap">
-      <label class="match-filter"><input type="checkbox" id="only-upcoming"><span>Mostrar solo los que faltan por jugar</span></label>
+      <label class="match-filter"><input type="checkbox" id="only-upcoming"><span>Mostrar solo los que faltan por jugar o en juego</span></label>
       <label class="match-filter"><input type="checkbox" id="only-today"><span>Partidos de hoy</span></label>
     </div>
     <div class="matches" id="match-list"></div>`;
@@ -346,7 +346,7 @@ function selectTab(key){
 }
 
 function isUpcoming(m){
-  return m.status!=='FINISHED' && m.status!=='IN_PLAY' && new Date(m.kickoff).getTime() > nowMs();
+  return m.status !== 'FINISHED';  // pendientes + en juego (oculta solo los ya terminados)
 }
 function isToday(m){
   const opts = {timeZone:'America/Santiago', year:'numeric', month:'2-digit', day:'2-digit'};
@@ -360,7 +360,7 @@ function paintMatches(round){
   const box = document.getElementById('match-list');
   if(!list.length){
     const msg = onlyToday ? 'No hay partidos de hoy en esta ronda.'
-              : onlyUpcoming ? 'No quedan partidos por jugar en esta ronda.'
+              : onlyUpcoming ? 'No quedan partidos por jugar ni en juego en esta ronda.'
               : 'No hay partidos en esta ronda.';
     box.innerHTML = `<div class="loading">${msg}</div>`;
     return;
