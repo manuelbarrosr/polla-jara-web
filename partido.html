@@ -34,6 +34,16 @@
   .pred .pt{font-family:var(--score);font-size:1.3rem;min-width:34px;text-align:center;
             background:#F3F6F2;border-radius:8px;padding:2px 6px}
   .pred .pt.z{color:var(--muted)}
+  .bchips{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px}
+  .bchip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:var(--ink);
+         background:#F3F6F2;border:1px solid var(--line);border-radius:99px;padding:3px 9px}
+  .bchip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
+  .bchip.c-unica::before{background:var(--coral)}
+  .bchip.c-exacto::before{background:var(--field)}
+  .bchip.c-tend::before{background:#3E8E72}
+  .bchip.c-gol::before{background:#9FBDAF}
+  .bchip.c-zero{color:var(--muted)}
+  .bchip.c-zero::before{background:#CBD3C9}
   .countlbl{font-size:.82rem;color:var(--muted);margin:16px 0 10px}
 </style>
 </head>
@@ -137,19 +147,34 @@ async function init(){
     return p;
   }
 
+  // Desglose: cómo obtuvo sus puntos (chips, igual que la tabla general)
+  function breakdown(r){
+    const ph=r.home_pred, pa=r.away_pred, hs=m.home_score, as=m.away_score;
+    if(ph===hs && pa===as){
+      return nExact===1
+        ? '<span class="bchip c-unica">Única</span>'
+        : '<span class="bchip c-exacto">Exacto</span>';
+    }
+    const chips=[];
+    if(Math.sign(ph-pa)===Math.sign(hs-as)) chips.push('<span class="bchip c-tend">Tendencia</span>');
+    if(ph===hs || pa===as) chips.push('<span class="bchip c-gol">Gol</span>');
+    return chips.length ? chips.join('') : '<span class="bchip c-zero">Sin acierto</span>';
+  }
+
   rows.sort((a,b)=> finished ? (pts(b)-pts(a)) :
     (((a.entries?.nombre)||'').localeCompare((b.entries?.nombre)||'')));
 
   const list = rows.map(r=>{
     const nombre = r.entries?.nombre || '—';
-    const dueno = r.entries?.profiles?.display_name || '';
     const p = pts(r);
     const ptHtml = finished ? `<span class="pt ${p===0?'z':''}">${p}</span>` : '';
+    const chipsHtml = finished ? `<div class="bchips">${breakdown(r)}</div>` : '';
     return `
       <div class="pred" style="grid-template-columns:1fr auto ${finished?'auto':''}">
         <div class="nm">${escapeHtml(nombre)}</div>
         <div class="guess">${r.home_pred}-${r.away_pred}</div>
         ${ptHtml}
+        ${chipsHtml}
       </div>`;
   }).join('');
 
