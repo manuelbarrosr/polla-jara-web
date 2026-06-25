@@ -305,7 +305,7 @@ async function loadTickets(user){
       <span class="btn btn-coral">Ir a mis predicciones →</span>
     </a>`).join('');
 
-  // Tarjeta para crear otro ticket (nadie tendrá más de 2)
+  // Tarjeta para crear otro ticket (visible si tiene menos de 2; al click se valida el permiso)
   if(tickets.length < 2){
     html += `<button class="ticket-add" id="card-add-ticket"><span class="plus">+</span><span class="addlbl">Crear otro ticket</span></button>`;
   }
@@ -317,18 +317,25 @@ async function loadTickets(user){
 
 async function addTicket(){
   const user = await getUser();
-  // Nombre automático: "<nombre del usuario> <número>" (ej. "Manuel Barros 2")
-  const { data: prof } = await sb.from('profiles').select('display_name').eq('id', user.id).maybeSingle();
-  const base = (prof?.display_name || 'Ticket').trim();
+  const { data: prof } = await sb.from('profiles').select('display_name,tickets').eq('id', user.id).maybeSingle();
+  const allowed = (prof && prof.tickets) ? prof.tickets : 1;
   const { data: ents } = await sb.from('entries').select('id').eq('user_id', user.id);
-  const nombre = `${base} ${(ents?.length || 0) + 1}`;
+  const count = ents?.length || 0;
 
+  // ¿Le corresponden más tickets?
+  if(count >= allowed){
+    alert('Tu usuario no está habilitado para crear otro ticket. Si pagaste por un segundo ticket, avísale al organizador.');
+    return;
+  }
+
+  // Nombre automático: "<nombre del usuario> <número>" (ej. "Manuel Barros 2")
+  const nombre = `${(prof?.display_name || 'Ticket').trim()} ${count + 1}`;
   if(!confirm(`Se creará un nuevo ticket a nombre de "${nombre}". ¿Continuar?`)) return;
 
   const { error } = await sb.from('entries').insert({ user_id: user.id, nombre });
   if(error){
     alert(/límite|limit/i.test(error.message)
-      ? 'Ya alcanzaste tu límite de tickets pagados.'
+      ? 'Tu usuario no está habilitado para crear otro ticket.'
       : ('No se pudo crear: ' + error.message));
     return;
   }
