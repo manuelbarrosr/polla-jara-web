@@ -33,6 +33,14 @@
   .c-tend i{background:#3E8E72} .c-gol i{background:#9FBDAF} .c-esp i{background:var(--gold)}
 
   .empty{text-align:center;color:var(--muted);padding:50px}
+
+  /* En móvil: los 4 chips en una sola línea */
+  @media(max-width:560px){
+    .chips{flex-wrap:nowrap;overflow-x:auto;gap:5px;-webkit-overflow-scrolling:touch}
+    .chip{flex:0 0 auto;font-size:.64rem;gap:5px;padding:2px 9px}
+    .chip i{width:7px;height:7px}
+    .chip b{font-size:.78rem}
+  }
 </style>
 </head>
 <body>
@@ -107,7 +115,6 @@ function render(data){
         ${chip('c-exacto','Exacto', r.p_exacto)}
         ${chip('c-tend','Tendencia', r.p_tendencia)}
         ${chip('c-gol','Gol', r.p_gol)}
-        ${chip('c-esp','Especiales', r.p_especiales)}
       </div>
     </div>`;
   }).join('');
