@@ -87,16 +87,12 @@
   /* En móvil: nombres arriba (espacio completo) y casilleros abajo, para que
      no se corten nombres largos en pantallas angostas (Android ~360px). */
   @media(max-width:560px){
-    .score-row{grid-template-columns:1fr auto 1fr;align-items:start;
-               grid-template-areas:"hteam . ateam" "hbox dash abox";row-gap:9px}
-    .score-row .team{flex-direction:column;align-items:center;text-align:center;gap:5px}
-    .score-row .team.home{grid-area:hteam}
-    .score-row .team.away{grid-area:ateam}
-    .score-row .team .flag{order:-1;height:22px}     /* bandera arriba del nombre */
-    .score-row .team .nm{white-space:normal;overflow:visible;text-overflow:clip;font-size:.86rem;line-height:1.15}
-    .score-row .goal-home{grid-area:hbox;width:52px;justify-self:end}
-    .score-row .dash{grid-area:dash}
-    .score-row .goal-away{grid-area:abox;width:52px;justify-self:start}
+    /* Equipo (bandera arriba + país abajo) a cada lado, resultado al medio, una sola fila */
+    .score-row{grid-template-columns:1fr 46px 16px 46px 1fr;align-items:center;gap:6px}
+    .score-row .team{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px}
+    .score-row .team .flag{order:-1;height:24px}     /* bandera arriba del nombre */
+    .score-row .team .nm{white-space:normal;overflow:visible;text-overflow:clip;font-size:.82rem;line-height:1.12}
+    .score-row .goal{font-size:1.5rem}
   }
 
   /* Especiales */
