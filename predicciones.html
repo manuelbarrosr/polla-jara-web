@@ -84,6 +84,19 @@
   .goal:focus{outline:none;border-color:var(--field);box-shadow:0 0 0 3px rgba(14,110,78,.15)}
   .goal:disabled{background:#EFF1EE;color:#AEB7B0;cursor:not-allowed}
 
+  /* En móvil: nombres arriba (espacio completo) y casilleros abajo, para que
+     no se corten nombres largos en pantallas angostas (Android ~360px). */
+  @media(max-width:560px){
+    .score-row{grid-template-columns:1fr auto 1fr;
+               grid-template-areas:"hteam . ateam" "hbox dash abox";row-gap:10px}
+    .score-row .team.home{grid-area:hteam;justify-content:flex-start;text-align:left}
+    .score-row .team.away{grid-area:ateam;justify-content:flex-end;text-align:right}
+    .score-row .team .nm{white-space:normal;overflow:visible;text-overflow:clip}
+    .score-row .goal-home{grid-area:hbox;width:52px;justify-self:end}
+    .score-row .dash{grid-area:dash}
+    .score-row .goal-away{grid-area:abox;width:52px;justify-self:start}
+  }
+
   /* Especiales */
   .specials{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:20px}
   .specials .lock-note{font-size:.82rem;padding:10px 12px;border-radius:10px;margin-bottom:16px;background:#FFF7E8;border:1px solid #F1E0B8;color:#7A5B12}
@@ -411,9 +424,9 @@ function renderMatch(m){
     </div>
     <div class="score-row">
       ${teamHtml(m.home_team,'home')}
-      <input class="goal" id="h-${m.id}" type="number" min="0" inputmode="numeric" value="${hv}" ${dis}>
+      <input class="goal goal-home" id="h-${m.id}" type="number" min="0" inputmode="numeric" value="${hv}" ${dis}>
       <span class="dash">–</span>
-      <input class="goal" id="a-${m.id}" type="number" min="0" inputmode="numeric" value="${av}" ${dis}>
+      <input class="goal goal-away" id="a-${m.id}" type="number" min="0" inputmode="numeric" value="${av}" ${dis}>
       ${teamHtml(m.away_team,'away')}
     </div>
     ${started ? `<a class="match-detail" href="partido.html?match=${m.id}">${finished ? 'Ver puntos de todos' : 'Ver predicciones de todos'} →</a>` : ''}
