@@ -15,6 +15,12 @@
   .dash-titles .h-sec{margin:0}
   .t-tickets{grid-column:1 / 3}
   .t-premios{grid-column:3}
+  .t-wa{grid-column:3}
+  .wa-btn{display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;white-space:nowrap;
+          background:#25D366;color:#fff;border-radius:var(--r);box-shadow:var(--shadow);
+          padding:8px 12px;font-weight:600;font-size:.8rem;line-height:1.1;transition:filter .15s}
+  .wa-btn:hover{filter:brightness(.96)}
+  .wa-btn svg{width:16px;height:16px;flex:0 0 auto}
   .dash-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
   #tickets-grid{display:contents}
   .dash-grid .ticket{display:flex;flex-direction:column}
@@ -59,6 +65,7 @@
     .dash-titles{grid-template-columns:1fr}
     .t-tickets{grid-column:auto}
     .t-premios{display:none}
+    .t-wa{grid-column:auto}
     .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     /* tickets: botón naranjo en una sola línea */
     .dash-grid .ticket{padding:14px}
@@ -102,6 +109,8 @@
   .modal-title{font-family:var(--score);font-weight:400;font-size:1.55rem;line-height:1;margin:0 0 10px;color:var(--ink)}
   .modal-msg{margin:0 0 18px;color:var(--muted);font-size:.92rem;line-height:1.55}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px}
+  .moroso-list{margin:12px 0 0;padding:0 0 0 20px;color:var(--ink);font-weight:700;max-height:240px;overflow-y:auto}
+  .moroso-list li{margin:3px 0}
 </style>
 </head>
 <body>
@@ -159,6 +168,7 @@
     <section class="section" id="tickets">
       <div class="dash-titles">
         <h2 class="h-sec t-tickets">Tus tickets activos</h2>
+        <a class="wa-btn t-wa" href="https://chat.whatsapp.com/Fr5iKsGeqImLnNLbjdzeht" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Súmate al grupo de WhatsApp</a>
       </div>
       <div class="dash-grid">
         <div id="tickets-grid"></div>
@@ -189,7 +199,6 @@
 
     <!-- Mini tabla + acceso a partidos -->
     <section class="section">
-      <p class="eyebrow eyebrow-tabla">Cómo va la cosa</p>
       <h2 class="h-sec">Tabla general</h2>
       <div class="table-row">
         <div class="card board">
@@ -226,6 +235,9 @@
 <script src="config.js"></script>
 <script src="app.js"></script>
 <script>
+// Aviso del dashboard:  'testeo' (período de prueba) | 'morosos' (lista de no pagados) | 'none'
+const DASHBOARD_NOTICE = 'testeo';
+
 // ---------- Estado del formulario ----------
 let mode = 'login'; // 'login' | 'register'
 
@@ -307,7 +319,11 @@ async function route(){
   document.getElementById('app-view').style.display = 'block';
   paintTopbar(profile);
   await Promise.all([ loadTickets(user), loadPool(), loadBoard() ]);
-  uiAlert('Estamos en período de testeo para que puedas familiarizarte con la app. Ingresa predicciones para los partidos restantes de la fase de grupos. El sábado 27 de junio a las 11:00 hrs. se reseteará todo el sitio para iniciar oficialmente la polla.', 'Estamos en testeo');
+  if(DASHBOARD_NOTICE === 'testeo'){
+    uiAlert('Estamos en período de testeo para que puedas familiarizarte con la app. Ingresa predicciones para los partidos restantes de la fase de grupos. El sábado 27 de junio a las 11:00 hrs. se reseteará todo el sitio para iniciar oficialmente la polla.', 'Estamos en testeo');
+  }else if(DASHBOARD_NOTICE === 'morosos'){
+    showMorosos();
+  }
 }
 
 // ---------- Pozo y premios ----------
@@ -354,11 +370,12 @@ async function loadTickets(user){
 }
 
 // ---------- Modal propio (reemplaza alert/confirm del navegador) ----------
-function uiModal({title='Aviso', message='', okText='Aceptar', cancel=true}){
+function uiModal({title='Aviso', message='', messageHtml=null, okText='Aceptar', cancel=true}){
   return new Promise(resolve=>{
     const m = document.getElementById('modal');
     document.getElementById('modal-title').textContent = title;
-    document.getElementById('modal-msg').textContent = message;
+    const msgEl = document.getElementById('modal-msg');
+    if(messageHtml!=null) msgEl.innerHTML = messageHtml; else msgEl.textContent = message;
     const ok = document.getElementById('modal-ok');
     const cancelBtn = document.getElementById('modal-cancel');
     ok.textContent = okText;
@@ -372,6 +389,17 @@ function uiModal({title='Aviso', message='', okText='Aceptar', cancel=true}){
 }
 const uiConfirm = (message, title='Confirmar')=> uiModal({title, message, okText:'Aceptar', cancel:true});
 const uiAlert   = (message, title='Aviso')=> uiModal({title, message, okText:'Entendido', cancel:false});
+
+// Alerta de morosos: lista a quienes no han pagado (pagado=false vía vista v_morosos)
+async function showMorosos(){
+  const { data, error } = await sb.from('v_morosos').select('display_name');
+  if(error) return;
+  const nombres = (data||[]).map(r=>r.display_name).filter(Boolean);
+  if(!nombres.length) return;   // si nadie debe, no mostramos la alerta
+  const intro = '¡Atención! Estos jugadores todavía no han pagado su cuota. Rogamos ponerse al día cuanto antes para evitar ser eliminados de la polla.';
+  const lista = '<ul class="moroso-list">' + nombres.map(n=>`<li>${escapeHtml(n)}</li>`).join('') + '</ul>';
+  uiModal({ title:'Jugadores morosos', messageHtml: escapeHtml(intro) + lista, okText:'Entendido', cancel:false });
+}
 
 async function addTicket(){
   const user = await getUser();
