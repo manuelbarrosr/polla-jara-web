@@ -27,10 +27,12 @@
   .chips{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:5px;margin-top:1px}
   .chip{display:inline-flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;color:var(--ink);
         background:#F3F6F2;border:1px solid var(--line);border-radius:99px;padding:2px 8px}
-  .chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .chip-ic{width:14px;height:14px;flex:0 0 auto}
   .chip b{font-family:var(--score);font-size:.82rem;font-weight:400}
-  .c-unica i{background:var(--coral)} .c-exacto i{background:var(--field)}
-  .c-tend i{background:#3E8E72} .c-gol i{background:#9FBDAF} .c-esp i{background:var(--gold)}
+  .c-unica .chip-ic{color:var(--coral)}
+  .c-exacto .chip-ic{color:var(--field)}
+  .c-tend .chip-ic{color:#3E8E72}
+  .c-gol .chip-ic{color:var(--ink)}
 
   .empty{text-align:center;color:var(--muted);padding:50px}
 
@@ -38,7 +40,7 @@
   @media(max-width:560px){
     .chips{flex-wrap:nowrap;overflow-x:auto;gap:5px;-webkit-overflow-scrolling:touch}
     .chip{flex:0 0 auto;font-size:.64rem;gap:5px;padding:2px 9px}
-    .chip i{width:7px;height:7px}
+    .chip-ic{width:12px;height:12px}
     .chip b{font-size:.78rem}
   }
 </style>
@@ -92,8 +94,18 @@ async function init(){
   });
 }
 
+const CHIP_ICONS = {
+  // Única = estrella
+  'c-unica':  '<svg class="chip-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.97 6.09 21.13l1.13-6.57L2.45 8.94l6.6-.96z"/></svg>',
+  // Exacto = diana / tablero de dardos
+  'c-exacto': '<svg class="chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>',
+  // Tendencia = línea ascendente
+  'c-tend':   '<svg class="chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18l5-5 3 3 7-8"/><path d="M18 7h3v3"/></svg>',
+  // Gol = pelota de fútbol
+  'c-gol':    '<svg class="chip-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8.7 L15.14 10.98 L13.94 14.67 L10.06 14.67 L8.86 10.98 Z" fill="currentColor" stroke="none"/><path d="M12 8.7V6M15.14 10.98l2.4-.8M13.94 14.67l1.5 2.05M10.06 14.67l-1.5 2.05M8.86 10.98l-2.4-.8"/></svg>'
+};
 function chip(cls, label, val){
-  return `<span class="chip ${cls}"><i></i>${label} <b>${val}</b></span>`;
+  return `<span class="chip ${cls}">${CHIP_ICONS[cls]||''}${label} <b>${val}</b></span>`;
 }
 
 function render(data){
