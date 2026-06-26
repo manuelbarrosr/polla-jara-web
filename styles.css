@@ -51,6 +51,8 @@ a{color:inherit}
   padding:7px 11px;border-radius:99px;white-space:nowrap;
 }
 .topbar nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+.topbar nav a.nav-admin{color:#FFC2B4}
+.topbar nav a.nav-admin:hover{background:rgba(255,84,54,.22);color:#fff}
 .who{display:flex;align-items:center;gap:10px;font-size:.85rem;color:#CFE5D9}
 
 /* ---------- Menú hamburguesa (mobile) ---------- */

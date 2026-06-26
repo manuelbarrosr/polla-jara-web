@@ -33,10 +33,22 @@ async function signOut(){
 function paintTopbar(profile){
   const who = document.getElementById('who');
   if(who && profile){
-    who.innerHTML = `<span>${escapeHtml(profile.display_name||'')}</span>
-      <button class="btn btn-ghost btn-sm" onclick="signOut()">Cerrar sesión</button>`;
+    who.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="signOut()">Cerrar sesión</button>`;
   }
   setupNavPredicciones();
+  setupAdminLink(profile);
+}
+
+// Agrega la opción "Admin" al menú solo para administradores (is_admin)
+function setupAdminLink(profile){
+  if(!profile || !profile.is_admin) return;
+  const nav = document.querySelector('.topbar nav');
+  if(!nav || nav.querySelector('.nav-admin')) return;
+  const a = document.createElement('a');
+  a.href = 'admin.html';
+  a.className = 'nav-admin';
+  a.textContent = 'Admin';
+  nav.appendChild(a);
 }
 
 // Arma el ítem "Mi ticket" del menú según los tickets del usuario:
