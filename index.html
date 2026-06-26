@@ -307,6 +307,7 @@ async function route(){
   document.getElementById('app-view').style.display = 'block';
   paintTopbar(profile);
   await Promise.all([ loadTickets(user), loadPool(), loadBoard() ]);
+  uiAlert('Estamos en período de testeo para que puedas familiarizarte con la app. Ingresa predicciones para los partidos restantes de la fase de grupos. El sábado 27 de junio a las 11:00 hrs. se reseteará todo el sitio para iniciar oficialmente la polla.', 'Estamos en testeo');
 }
 
 // ---------- Pozo y premios ----------
