@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="styles.css">
 <style>
   .hint{font-size:.8rem;color:var(--muted);margin:0 0 16px}
-  .bracket{display:flex;align-items:stretch;overflow-x:auto;padding:2px 2px 22px;-webkit-overflow-scrolling:touch}
+  .bracket{position:relative;display:flex;align-items:stretch;overflow-x:auto;padding:2px 2px 22px;-webkit-overflow-scrolling:touch}
   .round{display:flex;flex-direction:column;flex:0 0 158px;margin-right:34px}
   .round.is-last{margin-right:0}
   .round-head{font-family:var(--score);font-size:1.05rem;color:var(--field-deep);letter-spacing:.05em;
@@ -22,10 +22,20 @@
   /* conectores en codo */
   .round:not(.is-last) .match-cell::after{content:"";position:absolute;left:100%;top:50%;
     width:34px;height:2px;background:var(--line);transform:translateY(-1px)}
-  .round:not(.is-last) .match-cell:nth-child(odd)::before{content:"";position:absolute;
+  .round:not(.is-last) .match-cell.cdn::before{content:"";position:absolute;
     left:calc(100% + 34px);top:50%;height:50%;width:2px;background:var(--line)}
-  .round:not(.is-last) .match-cell:nth-child(even)::before{content:"";position:absolute;
+  .round:not(.is-last) .match-cell.cup::before{content:"";position:absolute;
     left:calc(100% + 34px);bottom:50%;height:50%;width:2px;background:var(--line)}
+
+  /* separación entre las dos mitades del cuadro (Llave A arriba / Llave B abajo) */
+  .split-line{position:absolute;left:0;height:0;border-top:2px dashed rgba(14,110,78,.55);z-index:-1;pointer-events:none}
+  .half-sep{flex:0 0 auto;position:relative;height:54px;margin:3px 0}
+  .half-sep .tag{position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;
+    align-items:center;gap:1px;line-height:1;color:var(--field);font-size:.62rem;font-weight:800;
+    letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+  .half-sep .tag-a{bottom:50%;margin-bottom:5px}
+  .half-sep .tag-b{top:50%;margin-top:5px}
+  .half-sep .tag .ar{font-size:.7rem;line-height:.7}
 
   /* tarjeta de partido */
   .bm{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;
@@ -108,11 +118,24 @@ async function init(){
   bracket.innerHTML = present.map((r,ri)=>{
     const list = matches.filter(m=>m.round===r).sort((a,b)=> a.kickoff<b.kickoff?-1:1);
     const isLast = ri === present.length-1;
-    let inner = list.map(m=>`<div class="match-cell">${card(m, r==='FINAL')}</div>`).join('');
-    if(isLast){
+    let inner;
+    if(r==='FINAL'){
+      inner = list.map(m=>`<div class="match-cell">${card(m,true)}</div>`).join('');
       inner += `<div class="third-h final-h">La final</div>`;
       if(third.length){
         inner += `<div class="third-cell"><div class="third-h">Tercer puesto</div>${third.map(m=>card(m,false)).join('')}</div>`;
+      }
+    } else {
+      // cada partido lleva su conector: índice par baja (cdn), impar sube (cup)
+      const cells = list.map((m,i)=>`<div class="match-cell ${i%2===0?'cdn':'cup'}">${card(m,false)}</div>`);
+      if(cells.length>2){
+        const mid = cells.length/2;
+        const tag = ri===0
+          ? '<span class="tag tag-a"><span class="ar">▲</span>Llave A</span><span class="tag tag-b">Llave B<span class="ar">▼</span></span>'
+          : '';
+        inner = cells.slice(0,mid).join('') + `<div class="half-sep">${tag}</div>` + cells.slice(mid).join('');
+      } else {
+        inner = cells.join('');
       }
     }
     return `<div class="round ${isLast?'is-last':''}">
@@ -124,6 +147,22 @@ async function init(){
   bracket.querySelectorAll('[data-id]').forEach(el=>{
     el.onclick = ()=> location.href = 'partido.html?match=' + el.dataset.id;
   });
+
+  placeSplitLine();
+  window.addEventListener('resize', placeSplitLine);
+}
+
+// Dibuja UNA sola línea continua a lo alto del centro del cuadro (sin saltos).
+function placeSplitLine(){
+  const bracket = document.getElementById('bracket');
+  if(!bracket) return;
+  let line = bracket.querySelector('.split-line');
+  const sep = bracket.querySelector('.half-sep');
+  if(!sep){ if(line) line.remove(); return; }
+  if(!line){ line = document.createElement('div'); line.className = 'split-line'; bracket.appendChild(line); }
+  const last = bracket.querySelector('.round.is-last');
+  line.style.top   = (sep.offsetTop + sep.offsetHeight/2 - 1) + 'px';
+  line.style.width = (last ? last.offsetLeft - 14 : bracket.scrollWidth) + 'px';
 }
 
 function teamLine(name, mine, other, finished){
