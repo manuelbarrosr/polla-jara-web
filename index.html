@@ -331,10 +331,10 @@ async function route(){
   }
 }
 
-// Modal de bienvenida: se muestra UNA sola vez por navegador (marca en localStorage).
+// Modal de bienvenida: se muestra UNA vez por sesión (sessionStorage se borra al cerrar la pestaña/navegador).
 function showBienvenida(){
   const KEY = 'polla_bienvenida_v1';
-  try{ if(localStorage.getItem(KEY)) return; }catch(e){}
+  try{ if(sessionStorage.getItem(KEY)) return; }catch(e){}
   const chip = '<span style="display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:#3A2A06;'
     + 'font-weight:800;border-radius:99px;padding:2px 9px;font-size:.82rem;line-height:1.3;vertical-align:middle;white-space:nowrap">'
     + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto">'
@@ -345,7 +345,7 @@ function showBienvenida(){
     + '<p style="margin-top:12px"><b>Importante:</b> recuerda ingresar tus predicciones para el ' + chip
     + '. Esta apuesta se cerrará antes del partido entre <b>Sudáfrica y Canadá</b>.</p>';
   uiModal({ title:'¡Bienvenido a la Polla del Hugo Jara!', messageHtml: html, okText:'¡A jugar!', cancel:false });
-  try{ localStorage.setItem(KEY, '1'); }catch(e){}
+  try{ sessionStorage.setItem(KEY, '1'); }catch(e){}
 }
 
 // ---------- Pozo y premios ----------
