@@ -239,7 +239,7 @@
 <script src="app.js"></script>
 <script>
 // Aviso del dashboard:  'testeo' (período de prueba) | 'morosos' (lista de no pagados) | 'none'
-const DASHBOARD_NOTICE = 'testeo';
+const DASHBOARD_NOTICE = 'morosos';
 
 // ---------- Estado del formulario ----------
 let mode = 'login'; // 'login' | 'register'
@@ -359,7 +359,7 @@ async function loadTickets(user){
       <div class="num">${i+1}</div>
       <div class="lbl">Ticket ${i+1}</div>
       <div class="name">${escapeHtml(e.nombre)}</div>
-      <span class="btn btn-coral">Mis predicciones →</span>
+      <span class="btn btn-coral">Ir a mis predicciones →</span>
     </a>`).join('');
 
   // Tarjeta para crear otro ticket (visible si tiene menos de 2; al click se valida el permiso)
