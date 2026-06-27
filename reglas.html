@@ -18,6 +18,19 @@
   .rule p{margin:0;color:var(--muted);font-size:.88rem}
   .ej{background:#F3F7F4;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:.85rem;color:var(--muted)}
   .ej b{color:var(--ink)}
+  .howto{list-style:none;margin:0;padding:0}
+  .howto li{display:flex;gap:13px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .howto li:last-child{border-bottom:0}
+  .howto .n{flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--field);color:#fff;
+            font-family:var(--score);font-size:1.05rem;display:grid;place-items:center;line-height:1;margin-top:1px}
+  .howto .tx{font-size:.9rem;color:var(--muted);line-height:1.5}
+  .howto .tx b{color:var(--ink)}
+  .where{font-size:.88rem;color:var(--muted);margin:0 0 14px;line-height:1.5}
+  .where b{color:var(--ink)}
+  .alerta{display:flex;gap:11px;align-items:center;background:#FFF3D6;border:1.5px solid var(--gold);
+          border-radius:12px;padding:14px 16px;margin-top:14px}
+  .alerta svg{width:26px;height:26px;flex:0 0 auto;color:#B8860B}
+  .alerta p{margin:0;color:#6B4E07;font-weight:800;font-size:.92rem;line-height:1.4}
 </style>
 </head>
 <body>
@@ -38,8 +51,24 @@
 </header>
 
 <div class="wrap">
+
   <section class="section">
-    <p class="eyebrow">Cómo se juega</p>
+    <p class="eyebrow">Lo básico</p>
+    <h2 class="h-sec">Cómo jugar</h2>
+    <div class="card">
+      <ol class="howto">
+        <li><span class="n">1</span><span class="tx">Entra a <b>Mis Tickets</b> y elige tu planilla para abrir tus predicciones.</span></li>
+        <li><span class="n">2</span><span class="tx">En cada partido, escribe los <b>goles de cada equipo</b>. Se <b>guardan solos</b> (no hay botón de enviar): verás "✓ Guardado" cuando quede registrado.</span></li>
+        <li><span class="n">3</span><span class="tx">Puedes cargar o cambiar tu pronóstico hasta <b>15 minutos antes</b> del pitazo inicial de ese partido. Después queda cerrado.</span></li>
+        <li><span class="n">4</span><span class="tx">El resultado que cuenta es el de los <b>120 minutos</b> (tiempo regular + alargue). Si el partido se define por <b>penales</b>, para la polla vale el <b>empate</b>.</span></li>
+        <li><span class="n">5</span><span class="tx">Cuando un partido <b>empieza</b>, puedes ver qué pronosticó el resto (y, al terminar, los puntos de cada uno): entra a <b>Partidos</b> y toca el partido, o usa el enlace <b>"Ver predicciones de todos"</b> dentro de tus predicciones.</span></li>
+        <li><span class="n">6</span><span class="tx">Mira los resultados reales y la llave en <b>Partidos</b>, y cómo van todos en la <b>Tabla general</b> (con el desglose de tus puntos).</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="eyebrow">Cómo se puntúa</p>
     <h2 class="h-sec">Puntajes por partido</h2>
     <div class="card">
       <div class="rule"><div class="pts coral">9</div>
@@ -61,6 +90,7 @@
   <section class="section">
     <p class="eyebrow">Antes de que arranque</p>
     <h2 class="h-sec">Pronósticos especiales</h2>
+    <p class="where">Estos se cargan en la pestaña <b>Torneo</b> de tus predicciones (Mis Tickets → tu planilla → pestaña <b>Torneo</b>). Se ingresan los 5 juntos y completos.</p>
     <div class="card">
       <div class="rule"><div class="pts">10</div><div><h3>Campeón</h3></div></div>
       <div class="rule"><div class="pts">6</div><div><h3>Subcampeón</h3></div></div>
@@ -68,18 +98,12 @@
       <div class="rule"><div class="pts">5</div><div><h3>MVP del torneo</h3></div></div>
       <div class="rule"><div class="pts">5</div><div><h3>Goleador</h3></div></div>
     </div>
-    <div class="ej">
-      <p>Los 5 especiales se cargan <b>juntos y completos</b>, hasta <b>15 minutos antes del primer partido</b> de playoffs. Si no los cargas a tiempo, quedan en blanco.</p>
+    <div class="alerta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9.5 16.5H2.5z"/><path d="M12 10v4M12 17.6v.01"/></svg>
+      <p>¡Importante! Haz tus pronósticos especiales <b>antes de que empiece el primer partido de 16avos</b>. Después se cierran y quedan en blanco.</p>
     </div>
   </section>
 
-  <section class="section">
-    <p class="eyebrow">Para cada partido</p>
-    <h2 class="h-sec">El cierre</h2>
-    <div class="card" style="padding:18px">
-      <p style="margin:0;color:var(--muted)">Cada pronóstico de partido se puede cargar o cambiar hasta <b style="color:var(--ink)">15 minutos antes</b> del horario de ese partido. Después, queda cerrado.</p>
-    </div>
-  </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
