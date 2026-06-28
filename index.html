@@ -333,18 +333,18 @@ async function route(){
 
 // Modal de bienvenida: se muestra UNA vez por sesión (sessionStorage se borra al cerrar la pestaña/navegador).
 function showBienvenida(){
-  const KEY = 'polla_bienvenida_v1';
+  const KEY = 'polla_bienvenida_v2';
   try{ if(sessionStorage.getItem(KEY)) return; }catch(e){}
   const chip = '<span style="display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:#3A2A06;'
     + 'font-weight:800;border-radius:99px;padding:2px 9px;font-size:.82rem;line-height:1.3;vertical-align:middle;white-space:nowrap">'
     + '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto">'
     + '<path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3"/><path d="M12 12v3M9.5 20h5l-.5-3h-4z"/></svg>Torneo</span>';
   const html =
-      '<p>Ya estamos listos para partir la segunda fase. Ingresa a tu ticket y haz tus predicciones para la ronda de <b>16avos</b> '
-    + '(ojo: algunos partidos todavía no están confirmados).</p>'
-    + '<p style="margin-top:12px"><b>Importante:</b> recuerda ingresar tus predicciones para el ' + chip
-    + '. Esta apuesta se cerrará antes del partido entre <b>Sudáfrica y Canadá</b>.</p>';
-  uiModal({ title:'¡Bienvenido a la Polla del Hugo Jara!', messageHtml: html, okText:'¡A jugar!', cancel:false });
+      '<p>Hemos extendido el plazo para enviar las predicciones especiales del Torneo '
+    + '(Campeón, Subcampeón, Tercero, Goleador y MVP). Ingresa a tu ticket y ve a ' + chip
+    + ' para asegurarte de guardar tu apuesta.</p>'
+    + '<p style="margin-top:12px">Esta apuesta se cerrará definitivamente el <b>lunes 29 de junio a las 12:45</b>.</p>';
+  uiModal({ title:'¡Recuerda ingresar tus predicciones de Torneo!', messageHtml: html, okText:'¡A jugar!', cancel:false });
   try{ sessionStorage.setItem(KEY, '1'); }catch(e){}
 }
 
