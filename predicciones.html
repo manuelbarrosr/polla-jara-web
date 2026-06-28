@@ -172,7 +172,7 @@ const ROUND_ORDER = ['LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','THIRD_P
 const params = new URLSearchParams(location.search);
 const ENTRY_ID = params.get('ticket');
 
-let lockMin = 15, matches = [], preds = {}, minKickoff = null, saveTimers = {}, teamsByName = {};
+let lockMin = 15, matches = [], preds = {}, minKickoff = null, saveTimers = {}, teamsByName = {}, specialsDeadline = null;
 let onlyUpcoming = true, onlyToday = false, currentRound = null;
 
 function nowMs(){ return Date.now(); }
@@ -200,6 +200,13 @@ async function init(){
   const { data: cfg } = await sb.from('config').select('key,value');
   const cmap = Object.fromEntries((cfg||[]).map(c=>[c.key,c.value]));
   lockMin = cmap.lock_minutes ?? 15;
+
+  // cierre explícito de los especiales (si el admin lo fijó en specials_window);
+  // si no existe, se usa el primer partido como referencia (más abajo).
+  try{
+    const { data: sw } = await sb.from('specials_window').select('deadline').maybeSingle();
+    specialsDeadline = sw?.deadline || null;
+  }catch(e){ specialsDeadline = null; }
 
   // partidos
   const { data: ms } = await sb.from('matches').select('*');
@@ -495,15 +502,18 @@ async function clearPrediction(matchId){
 // ---------- Especiales ----------
 async function renderSpecials(userId){
   // El bloque queda oculto hasta que se elige la pestaña "Especiales"
-  const locked = minKickoff ? (nowMs() >= (new Date(minKickoff).getTime() - lockMin*60000)) : false;
+  // El cierre usa la fecha explícita (specials_window) si existe; si no, el 1er partido − 15 min.
+  const dlMs = specialsDeadline ? new Date(specialsDeadline).getTime()
+            : (minKickoff ? new Date(minKickoff).getTime() - lockMin*60000 : null);
+  const locked = dlMs ? (nowMs() >= dlMs) : false;
   const lockEl = document.getElementById('sp-lock');
   if(locked){
     lockEl.className = 'lock-note closed';
-    lockEl.textContent = 'Los especiales ya están cerrados (arrancaron los playoffs).';
+    lockEl.textContent = 'Los especiales ya están cerrados.';
   }else{
     lockEl.className = 'lock-note';
-    lockEl.textContent = minKickoff
-      ? `Se cierran el ${fmtWhen(minKickoff)} hs (15 min antes del primer partido). Hay que cargar los 5.`
+    lockEl.textContent = dlMs
+      ? `Se cierran el ${fmtWhen(new Date(dlMs).toISOString())} hs. Hay que cargar los 5.`
       : 'Carga los 5 antes del primer partido.';
   }
 
