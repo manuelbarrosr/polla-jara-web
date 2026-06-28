@@ -14,28 +14,49 @@
   .crumb a{color:var(--field);font-weight:600;text-decoration:none}
   .head{background:linear-gradient(135deg,var(--field) 0%,var(--field-deep) 100%);color:#EAF3EE;
         border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:6px}
-  .head .when{font-size:.74rem;color:#A9D2BF;font-weight:700;margin-bottom:8px}
+  .head .when{font-size:.74rem;color:#A9D2BF;font-weight:600;margin-bottom:8px}
   .head .vs{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .head .vs .t{font-weight:800;font-size:1.1rem;flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+  .head .vs .t{font-weight:600;font-size:1.1rem;flex:1;min-width:0;display:flex;align-items:center;gap:8px}
   .head .vs .t.r{justify-content:flex-end;text-align:right}
   .head .vs .sc{font-family:var(--score);font-size:2.4rem;line-height:.8;padding:0 6px}
-  .head .vs .sc.tbd{font-size:1.1rem;color:#A9D2BF;font-family:var(--font);font-weight:700}
+  .head .vs .sc.tbd{font-size:1.1rem;color:#A9D2BF;font-family:var(--font);font-weight:600}
 
   .notice{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
           text-align:center;padding:46px 24px;color:var(--muted);margin-top:14px}
-  .notice b{display:block;color:var(--ink);font-size:1.05rem;margin-bottom:6px}
+  .notice b{display:block;color:var(--ink);font-size:1.05rem;font-weight:600;margin-bottom:6px}
 
-  .pred{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
-        background:var(--card);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);
-        padding:12px 15px;margin-bottom:9px}
-  .pred .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .pred .nm small{display:block;color:var(--muted);font-weight:500;font-size:.76rem}
-  .pred .guess{font-family:var(--score);font-size:1.4rem;letter-spacing:.04em}
-  .pred .pt{font-family:var(--score);font-size:1.3rem;min-width:34px;text-align:center;
-            background:#F3F6F2;border-radius:8px;padding:2px 6px}
-  .pred .pt.z{color:var(--muted)}
+  /* tarjeta de estadísticas: frecuencia de resultados pronosticados */
+  .stats-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+              padding:11px 14px;margin-bottom:6px}
+  .stats-h{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  .stat-row{display:grid;grid-template-columns:34px 1fr 22px;align-items:center;gap:9px;margin-bottom:4px}
+  .stat-row:last-child{margin-bottom:0}
+  .stat-k{font-family:var(--score);font-size:.95rem;letter-spacing:.03em;text-align:center;color:var(--ink);line-height:1}
+  .stat-bar{background:#F1EEE2;border-radius:5px;height:11px;overflow:hidden}
+  .stat-fill{display:block;height:100%;min-width:3px;background:var(--gold);border-radius:5px}
+  .stat-c{font-family:var(--score);font-size:.95rem;text-align:right;color:var(--muted);line-height:1}
+  .stat-row.real .stat-fill{background:var(--coral)}
+  .stat-row.real .stat-k{color:var(--coral)}
+
+  /* tabla compacta de pronósticos */
+  .ptable{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .ptable .ph{padding:8px 14px;background:var(--field-deep);color:#CFE5D9;font-size:.68rem;font-weight:600;
+              letter-spacing:.08em;text-transform:uppercase;display:grid;gap:10px;align-items:center}
+  .prow{display:grid;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line)}
+  .prow .nm{font-weight:500;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .prow .gs{font-family:var(--score);font-size:1.25rem;letter-spacing:.04em;text-align:center}
+  .prow .pt{font-family:var(--score);font-size:1.15rem;min-width:30px;text-align:center;
+            background:#F3F6F2;border-radius:7px;padding:1px 7px}
+  .prow .pt.z{color:var(--muted)}
+  .ph .c{text-align:center}
+  .rowchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .rowchips .bchip{font-size:.64rem;padding:2px 7px}
+  .psearch{width:100%;max-width:320px;padding:9px 13px;border:1px solid var(--line);border-radius:99px;
+           font-family:var(--font);font-size:.9rem;background:var(--card);margin:0 0 10px}
+  .psearch:focus{outline:none;border-color:var(--field);box-shadow:0 0 0 3px rgba(14,110,78,.15)}
+  .pempty{padding:18px 14px;text-align:center;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line)}
   .bchips{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:6px}
-  .bchip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;color:var(--ink);
+  .bchip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:500;color:var(--ink);
          background:#F3F6F2;border:1px solid var(--line);border-radius:99px;padding:3px 9px}
   .bchip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--muted)}
   .bchip.c-unica::before{background:var(--coral)}
@@ -161,26 +182,64 @@ async function init(){
     return chips.length ? chips.join('') : '<span class="bchip c-zero">Sin acierto</span>';
   }
 
+  // --- Tarjeta de estadísticas: frecuencia de cada resultado pronosticado ---
+  const freq = {};
+  rows.forEach(r=>{ const k = r.home_pred+'-'+r.away_pred; freq[k] = (freq[k]||0)+1; });
+  const fEntries = Object.entries(freq).sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]));
+  const maxC = fEntries.length ? fEntries[0][1] : 0;
+  const realKey = finished ? (m.home_score+'-'+m.away_score) : null;
+  const statsCard = rows.length ? `
+    <div class="stats-card">
+      <div class="stats-h">Resultados más pronosticados</div>
+      ${fEntries.map(([k,c])=>`
+        <div class="stat-row ${k===realKey?'real':''}">
+          <span class="stat-k">${k}</span>
+          <span class="stat-bar"><span class="stat-fill" style="width:${maxC?Math.round(c/maxC*100):0}%"></span></span>
+          <span class="stat-c">${c}</span>
+        </div>`).join('')}
+    </div>` : '';
+
+  // --- Tabla compacta de pronósticos ---
   rows.sort((a,b)=> finished ? (pts(b)-pts(a)) :
     (((a.entries?.nombre)||'').localeCompare((b.entries?.nombre)||'')));
 
-  const list = rows.map(r=>{
+  const gtc = finished ? 'grid-template-columns:1fr auto auto' : 'grid-template-columns:1fr auto';
+  const header = `<div class="ph" style="${gtc}"><span>Jugador</span><span class="c">Pron.</span>${finished?'<span class="c">Pts</span>':''}</div>`;
+  const body = rows.map(r=>{
     const nombre = r.entries?.nombre || '—';
     const p = pts(r);
+    const sub = finished ? `<div class="rowchips">${breakdown(r)}</div>` : '';
     const ptHtml = finished ? `<span class="pt ${p===0?'z':''}">${p}</span>` : '';
-    const chipsHtml = finished ? `<div class="bchips">${breakdown(r)}</div>` : '';
-    return `
-      <div class="pred" style="grid-template-columns:1fr auto ${finished?'auto':''}">
-        <div class="nm">${escapeHtml(nombre)}</div>
-        <div class="guess">${r.home_pred}-${r.away_pred}</div>
-        ${ptHtml}
-        ${chipsHtml}
-      </div>`;
+    return `<div class="prow" data-n="${escapeHtml(nombre)}" style="${gtc}">
+      <div class="nm">${escapeHtml(nombre)}${sub}</div>
+      <div class="gs">${r.home_pred}-${r.away_pred}</div>
+      ${ptHtml}
+    </div>`;
   }).join('');
+  const table = `<div class="ptable">${header}${body}<div class="pempty" id="p-empty" style="display:none">Sin coincidencias.</div></div>`;
+  const searchBox = rows.length ? '<input class="psearch" id="psearch" type="text" placeholder="Buscar jugador…" autocomplete="off">' : '';
 
-  document.getElementById('content').innerHTML = head +
+  document.getElementById('content').innerHTML = head + statsCard +
     `<p class="countlbl">${rows.length} pronóstico${rows.length===1?'':'s'}${finished?' · ordenados por puntos':''}</p>` +
-    (rows.length ? list : '<div class="notice">Nadie pronosticó este partido.</div>');
+    searchBox +
+    (rows.length ? table : '<div class="notice">Nadie pronosticó este partido.</div>');
+
+  // Filtro del buscador (sin acentos, en vivo)
+  const search = document.getElementById('psearch');
+  if(search){
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    search.addEventListener('input', ()=>{
+      const q = norm(search.value.trim());
+      let visibles = 0;
+      document.querySelectorAll('.ptable .prow').forEach(row=>{
+        const ok = !q || norm(row.dataset.n).includes(q);
+        row.style.display = ok ? '' : 'none';
+        if(ok) visibles++;
+      });
+      const empty = document.getElementById('p-empty');
+      if(empty) empty.style.display = visibles ? 'none' : '';
+    });
+  }
 }
 
 init();
