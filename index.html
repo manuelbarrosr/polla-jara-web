@@ -111,8 +111,14 @@
   .modal-title{font-family:var(--score);font-weight:400;font-size:1.55rem;line-height:1;margin:0 0 10px;color:var(--ink)}
   .modal-msg{margin:0 0 18px;color:var(--muted);font-size:.92rem;line-height:1.55}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px}
-  .moroso-list{margin:12px 0 0;padding:0 0 0 20px;color:var(--ink);font-weight:700;max-height:240px;overflow-y:auto}
+  .moroso-list{margin:10px 0 0;padding:0 0 0 20px;color:var(--ink);font-weight:600}
   .moroso-list li{margin:3px 0}
+  .pago-datos{margin:4px 0 0}
+  .pago-datos > div{display:flex;justify-content:space-between;gap:14px;align-items:baseline;
+                    padding:9px 0;border-bottom:1px solid var(--line)}
+  .pago-datos > div:last-child{border-bottom:0}
+  .pago-datos span{color:var(--muted);font-size:.82rem;flex:0 0 auto}
+  .pago-datos b{color:var(--ink);font-weight:700;font-size:.95rem;text-align:right;word-break:break-all}
 </style>
 </head>
 <body>
@@ -227,6 +233,7 @@
     <h3 class="modal-title" id="modal-title">Aviso</h3>
     <p class="modal-msg" id="modal-msg"></p>
     <div class="modal-actions">
+      <button class="btn" id="modal-extra" style="display:none">Más</button>
       <button class="btn" id="modal-cancel">Cancelar</button>
       <button class="btn btn-primary" id="modal-ok">Aceptar</button>
     </div>
@@ -392,7 +399,7 @@ async function loadTickets(user){
 }
 
 // ---------- Modal propio (reemplaza alert/confirm del navegador) ----------
-function uiModal({title='Aviso', message='', messageHtml=null, okText='Aceptar', cancel=true}){
+function uiModal({title='Aviso', message='', messageHtml=null, okText='Aceptar', cancel=true, extraText=null, onExtra=null, extraKeepOpen=false}){
   return new Promise(resolve=>{
     const m = document.getElementById('modal');
     document.getElementById('modal-title').textContent = title;
@@ -400,12 +407,16 @@ function uiModal({title='Aviso', message='', messageHtml=null, okText='Aceptar',
     if(messageHtml!=null) msgEl.innerHTML = messageHtml; else msgEl.textContent = message;
     const ok = document.getElementById('modal-ok');
     const cancelBtn = document.getElementById('modal-cancel');
+    const extraBtn = document.getElementById('modal-extra');
     ok.textContent = okText;
     cancelBtn.style.display = cancel ? '' : 'none';
+    if(extraText){ extraBtn.textContent = extraText; extraBtn.style.display = ''; }
+    else { extraBtn.style.display = 'none'; }
     m.style.display = 'flex';
-    function close(val){ m.style.display='none'; ok.onclick=null; cancelBtn.onclick=null; m.onclick=null; resolve(val); }
+    function close(val){ m.style.display='none'; ok.onclick=null; cancelBtn.onclick=null; extraBtn.onclick=null; m.onclick=null; resolve(val); }
     ok.onclick = ()=>close(true);
     cancelBtn.onclick = ()=>close(false);
+    extraBtn.onclick = ()=>{ if(!extraKeepOpen) close('extra'); if(onExtra) onExtra(); };
     m.onclick = e=>{ if(e.target===m) close(false); };  // clic afuera = cancelar
   });
 }
@@ -413,17 +424,60 @@ const uiConfirm = (message, title='Confirmar')=> uiModal({title, message, okText
 const uiAlert   = (message, title='Aviso')=> uiModal({title, message, okText:'Entendido', cancel:false});
 
 // Alerta de morosos: lista a quienes no han pagado (pagado=false vía vista v_morosos)
-async function showMorosos(){
+async function showMorosos(force){
   const KEY = 'polla_morosos_v1';   // se muestra 1 vez por sesión (no en cada visita)
-  try{ if(sessionStorage.getItem(KEY)) return; }catch(e){}
+  if(!force){ try{ if(sessionStorage.getItem(KEY)) return; }catch(e){} }
   const { data, error } = await sb.from('v_morosos').select('display_name');
   if(error) return;
   const nombres = (data||[]).map(r=>r.display_name).filter(Boolean);
   if(!nombres.length) return;   // si nadie debe, no mostramos la alerta
-  const intro = '¡Atención! Estos jugadores todavía no han pagado su cuota. Rogamos ponerse al día cuanto antes para evitar ser eliminados de la polla.';
-  const lista = '<ul class="moroso-list">' + nombres.map(n=>`<li>${escapeHtml(n)}</li>`).join('') + '</ul>';
-  uiModal({ title:'Jugadores morosos', messageHtml: escapeHtml(intro) + lista, okText:'Entendido', cancel:false });
+  const total = nombres.length;
+  const intro = total === 1
+    ? '¡Atención! Este jugador todavía no ha pagado su cuota. Rogamos ponerse al día cuanto antes para evitar ser eliminado de la polla.'
+    : `¡Atención! Estos ${total} jugadores todavía no han pagado su cuota. Rogamos ponerse al día cuanto antes para evitar ser eliminados de la polla.`;
+  const lista = '<ul class="moroso-list">' + nombres.map(nm=>`<li>${escapeHtml(nm)}</li>`).join('') + '</ul>';
+  uiModal({ title:'Jugadores morosos', messageHtml: escapeHtml(intro) + lista, okText:'Entendido', cancel:false,
+            extraText:'Datos para pagar', onExtra: showDatosPago });
   try{ sessionStorage.setItem(KEY, '1'); }catch(e){}
+}
+
+// Datos de transferencia para pagar la cuota.
+function showDatosPago(){
+  const datos = [
+    ['Banco', 'BCI'],
+    ['Cuenta corriente', '81677812'],
+    ['Titular', 'Sebastián Pino'],
+    ['RUT', '16.938.559-9'],
+    ['Correo', 'seba.pino.v@gmail.com'],
+  ];
+  const html = '<div class="pago-datos">' +
+    datos.map(([k,v])=>`<div><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`).join('') +
+    '</div>';
+  uiModal({ title:'Datos para pagar', messageHtml: html, okText:'Entendido', cancel:false,
+            extraText:'Copiar datos', onExtra: copiarDatosPago, extraKeepOpen:true });
+}
+
+// Copia los datos de transferencia al portapapeles (con feedback en el botón).
+function copiarDatosPago(){
+  const txt = 'Banco BCI\nCuenta corriente 81677812\nSebastián Pino\n16.938.559-9\nseba.pino.v@gmail.com';
+  const feedback = ()=>{
+    const b = document.getElementById('modal-extra');
+    if(!b) return;
+    b.textContent = '✓ Copiado';
+    setTimeout(()=>{ b.textContent = 'Copiar datos'; }, 1600);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(feedback).catch(()=>copiarFallback(txt, feedback));
+  }else{
+    copiarFallback(txt, feedback);
+  }
+}
+function copiarFallback(txt, cb){
+  const ta = document.createElement('textarea');
+  ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); if(cb) cb();
 }
 
 async function addTicket(){
