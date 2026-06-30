@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estadísticas — Polla Mundialera - CD Hugo Jara</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .seye{font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);margin:0 0 8px}
+  .ssec{margin:26px 0 0}
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px 16px}
+  .scard-h{font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .big{font-family:var(--score);font-weight:400;line-height:.9}
+  .mut{color:var(--muted)}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .kpi{background:linear-gradient(135deg,var(--field),var(--field-deep));color:#EAF3EE;border-radius:12px;padding:12px 13px}
+  .kpi .kl{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#A9D2BF;font-weight:700}
+  .kpi .kv{font-family:var(--score);font-size:2rem;line-height:.9;margin-top:3px}
+
+  /* barra de puntos por categoría */
+  .pbar{display:flex;height:18px;border-radius:6px;overflow:hidden}
+  .pleg{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:.78rem}
+  .pleg b{font-size:1rem;line-height:0}
+
+  /* grids 2 col / 3 col */
+  .g2{display:grid;grid-template-columns:1.3fr 1fr;gap:10px}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+  /* tarjetas chicas (superlativos / partido) */
+  .mini{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 13px}
+  .mini .ml{font-size:.64rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .mini .mn{font-weight:700;margin-top:4px;overflow:hidden;text-overflow:ellipsis}
+  .mini .mv{font-family:var(--score);font-size:1.6rem;line-height:1;margin-top:2px}
+  .mini .ms{font-size:.8rem;margin-top:2px}
+
+  /* barras (marcadores / campeón) */
+  .row3{display:grid;grid-template-columns:36px 1fr 26px;gap:9px;align-items:center;margin-bottom:6px}
+  .row3:last-child{margin-bottom:0}
+  .rk{font-family:var(--score);font-size:1rem;text-align:center;line-height:1}
+  .rt{background:#F1EEE2;border-radius:5px;height:12px;overflow:hidden}
+  .rf{display:block;height:100%;background:var(--gold);border-radius:5px;min-width:3px}
+  .rc{font-family:var(--score);font-size:.95rem;text-align:right;color:var(--muted)}
+  .champ{display:grid;grid-template-columns:104px 1fr 32px;gap:9px;align-items:center;margin-bottom:6px}
+  .champ:last-child{margin-bottom:0}
+  .champ .cn{font-weight:700;font-size:.82rem;display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+  .champ .cn img{height:14px;width:auto;border-radius:2px;flex:0 0 auto}
+  .champ .ct{background:#EEF2EC;border-radius:5px;height:12px;overflow:hidden}
+  .champ .cf{display:block;height:100%;background:var(--field);border-radius:5px;min-width:3px}
+  .champ .cc{font-family:var(--score);font-size:.95rem;text-align:right;color:var(--muted)}
+
+  /* votados */
+  .voted .vk{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .voted .vv{font-weight:700;font-size:.92rem;margin:2px 0 10px}
+  .voted .vv:last-child{margin-bottom:0}
+  .voted .vv span{font-weight:400;font-size:.78rem;color:var(--muted)}
+
+  .empty{text-align:center;color:var(--muted);padding:48px 20px}
+  @media(max-width:680px){
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .g2,.g3,.g4{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="index.html"><img class="hjlogo" src="hj.png" alt=""><b>Polla Mundialera<br>CD Hugo Jara</b></a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="burger" aria-label="Abrir menú"><span></span><span></span><span></span></label>
+    <nav>
+      <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
+      <a href="llave.html">Partidos</a>
+      <a href="tabla.html">Tabla general</a>
+      <a href="estadisticas.html">Estadísticas</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="reglas.html">Reglas y puntajes</a>
+    </nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="section">
+    <p class="seye">La polla en números</p>
+    <h1 class="h-sec">Estadísticas</h1>
+    <div id="content"><div class="empty">Calculando…</div></div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script src="stats.js"></script>
+<script>
+const esc = window.escapeHtml || (s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
+const clp = n => '$' + Math.round(n).toLocaleString('es-CL');
+const dec1 = n => (Math.round(n*10)/10).toString().replace('.', ',');
+const pct = (a,b) => b? Math.round(a/b*100) : 0;
+const flag = (S,name) => { const c=S.crest[name]; return c? `<img src="${esc(c)}" alt="">` : ''; };
+const tEquipo = window.tEquipo || (x=>x);
+
+async function init(){
+  const auth = await requireProfile();
+  if(!auth) return;
+  paintTopbar(auth.profile);
+  let S;
+  try{ S = await computePollaStats(); }
+  catch(e){ document.getElementById('content').innerHTML = '<div class="empty">No se pudieron cargar las estadísticas.</div>'; return; }
+  render(S);
+}
+
+function kpi(l,v){ return `<div class="kpi"><div class="kl">${l}</div><div class="kv">${v}</div></div>`; }
+function mini(l,nombre,val,sub){
+  return `<div class="mini"><div class="ml">${l}</div>`+
+    (nombre!=null?`<div class="mn">${esc(nombre)}</div>`:'')+
+    (val!=null?`<div class="mv">${val}</div>`:'')+
+    (sub!=null?`<div class="ms mut">${sub}</div>`:'')+`</div>`;
+}
+
+function render(S){
+  const box = document.getElementById('content');
+  const hayFin = S.kpis.finishedCount > 0;
+
+  // ---- KPIs ----
+  let html = `<div class="kpis">
+    ${kpi('Jugadores', S.kpis.players)}
+    ${kpi('Pozo', clp(S.kpis.pozo))}
+    ${kpi('Prom. puntos', hayFin? dec1(S.kpis.avgPoints) : '—')}
+    ${kpi('Exactos', S.kpis.totalExacts)}
+  </div>`;
+
+  // ---- Cómo se reparten los puntos ----
+  const cp = S.catPts, tot = cp.unica+cp.exacto+cp.tend+cp.gol;
+  if(tot>0){
+    const seg = (v,c)=>`<div style="width:${(v/tot*100)}%;background:${c}"></div>`;
+    html += `<div class="ssec"><p class="seye">Ranking y puntajes</p>
+      <div class="scard">
+        <div class="scard-h">Cómo se reparten los puntos de la polla</div>
+        <div class="pbar">
+          ${seg(cp.tend,'#0E6E4E')}${seg(cp.gol,'#9FBDAF')}${seg(cp.exacto,'#0A3D2E')}${seg(cp.unica,'#FF5436')}
+        </div>
+        <div class="pleg">
+          <span><b style="color:#0E6E4E">■</b> Tendencia ${pct(cp.tend,tot)}%</span>
+          <span><b style="color:#9FBDAF">■</b> Gol ${pct(cp.gol,tot)}%</span>
+          <span><b style="color:#0A3D2E">■</b> Exacto ${pct(cp.exacto,tot)}%</span>
+          <span><b style="color:#FF5436">■</b> Única ${pct(cp.unica,tot)}%</span>
+        </div>
+      </div></div>`;
+  }
+
+  // ---- Análisis por partido ----
+  if(hayFin){
+    const pa = S.partidos;
+    const cards = [];
+    if(pa.masDificil) cards.push(mini('El más difícil', pa.masDificil.label, null, `Solo el <b style="color:var(--ink)">${pct(pa.masDificil.scored,pa.masDificil.total)}%</b> puntuó`));
+    if(pa.sorpresa)   cards.push(mini('La mayor sorpresa', pa.sorpresa.label, null, `Solo <b style="color:var(--ink)">${pct(pa.sorpresa.tend,pa.sorpresa.total)}%</b> acertó la tendencia`));
+    if(pa.masFacil)   cards.push(mini('El más fácil', pa.masFacil.label, null, `<b style="color:var(--ink)">${pct(pa.masFacil.scored,pa.masFacil.total)}%</b> puntuó`));
+    if(cards.length) html += `<div class="ssec"><p class="seye">Análisis por partido</p><div class="g3">${cards.join('')}</div></div>`;
+  }
+
+  // ---- Patrones de apuestas ----
+  const ap = S.apuestas;
+  if(ap.topScores.length){
+    const maxC = ap.topScores[0].c;
+    const bars = ap.topScores.slice(0,5).map(s=>`
+      <div class="row3"><span class="rk">${s.k}</span>
+        <span class="rt"><span class="rf" style="width:${pct(s.c,maxC)}%"></span></span>
+        <span class="rc">${s.c}</span></div>`).join('');
+    const gmax = Math.max(ap.avgPred, ap.avgReal, 3);
+    html += `<div class="ssec"><p class="seye">Patrones de apuestas</p>
+      <div class="g2">
+        <div class="scard"><div class="scard-h">Marcadores más pronosticados</div>${bars}</div>
+        <div class="scard"><div class="scard-h">Goles por partido: pronóstico vs realidad</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="mut" style="font-size:.8rem">Promedio pronosticado</span><span class="big" style="font-size:1.6rem;color:var(--gold)">${dec1(ap.avgPred)}</span></div>
+          <div class="rt" style="margin:5px 0 14px"><span class="rf" style="width:${ap.avgPred/gmax*100}%"></span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="mut" style="font-size:.8rem">Promedio anotado</span><span class="big" style="font-size:1.6rem;color:var(--field)">${hayFin?dec1(ap.avgReal):'—'}</span></div>
+          <div class="rt" style="background:#EEF2EC;margin:5px 0 0"><span class="rf" style="width:${ap.avgReal/gmax*100}%;background:var(--field)"></span></div>
+        </div>
+      </div></div>`;
+  }
+
+  // ---- Especiales del Torneo ----
+  const es = S.especiales;
+  if(es.champions.total){
+    const maxc = es.champions.list[0].c;
+    const cbars = es.champions.list.slice(0,5).map(c=>`
+      <div class="champ"><span class="cn">${flag(S,c.name)}${esc(tEquipo(c.name))}</span>
+        <span class="ct"><span class="cf" style="width:${pct(c.c,maxc)}%"></span></span>
+        <span class="cc">${c.pct}%</span></div>`).join('');
+    const votado = (lbl, pick, team)=> pick? `<div class="vk">${lbl}</div><div class="vv">${esc(team?tEquipo(pick.name):pick.name)} <span>· ${pick.pct}%</span></div>` : '';
+    html += `<div class="ssec"><p class="seye">Especiales del Torneo</p>
+      <div class="g2">
+        <div class="scard"><div class="scard-h">Campeón más elegido</div>${cbars}</div>
+        <div class="scard voted"><div class="scard-h">Los más votados</div>
+          ${votado('MVP', es.mvps.list[0])}
+          ${votado('Goleador', es.scorers.list[0])}
+          ${votado('Subcampeón', es.runners.list[0], true)}
+          ${votado('Tercer lugar', es.thirds.list[0], true)}
+        </div>
+      </div></div>`;
+  }
+
+  if(!hayFin && !es.champions.total){
+    html += `<div class="empty" style="margin-top:20px">Cuando se jueguen los primeros partidos, aquí aparecerán las estadísticas.</div>`;
+  }
+
+  box.innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>

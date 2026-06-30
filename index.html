@@ -22,25 +22,40 @@
   .wa-btn:hover{filter:brightness(.96)}
   .wa-btn svg{width:16px;height:16px;flex:0 0 auto}
   .wa-mobile{display:none}
-  .dash-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
-  #tickets-grid{display:contents}
-  .dash-grid .ticket{display:flex;flex-direction:column}
-  .dash-grid a.ticket{text-decoration:none;color:#EAF3EE;transition:transform .08s ease}
-  .dash-grid a.ticket:hover{transform:translateY(-2px)}
-  .dash-grid .ticket .name{margin:2px 0 16px}
-  .dash-grid .ticket .btn{margin-top:auto}
+  .dash-grid{display:grid;grid-template-columns:1fr 1fr 1.05fr;gap:14px;align-items:stretch}
+  #tickets-grid{display:flex;flex-direction:column;gap:12px}
 
-  /* fondos con foto + tinte verde y degradé */
-  .ticket.t1{background:linear-gradient(135deg,rgba(14,110,78,.74) 0%,rgba(10,61,46,.93) 100%),url('ticket1.jpg') center/cover no-repeat}
-  .ticket.t2{background:linear-gradient(135deg,rgba(14,110,78,.74) 0%,rgba(10,61,46,.93) 100%),url('ticket2.jpg') center/cover no-repeat}
+  /* tickets delgados apilados */
+  .ticket{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:10px;
+          min-height:74px;padding:12px 15px;border-radius:var(--r);box-shadow:var(--shadow);color:#EAF3EE;
+          text-decoration:none;transition:transform .08s ease}
+  .ticket:hover{transform:translateY(-2px)}
+  .ticket .lbl{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#A9D2BF;font-weight:700}
+  .ticket .name{font-weight:700;font-size:1.02rem;margin:1px 0 0}
+  .ticket .tk-go{flex:0 0 auto;background:var(--coral);color:#fff;font-weight:700;font-size:.78rem;
+                 padding:8px 13px;border-radius:99px;white-space:nowrap}
+  .ticket.t1{background:linear-gradient(135deg,rgba(14,110,78,.78) 0%,rgba(10,61,46,.94) 100%),url('ticket1.jpg') center/cover no-repeat}
+  .ticket.t2{background:linear-gradient(135deg,rgba(14,110,78,.78) 0%,rgba(10,61,46,.94) 100%),url('ticket2.jpg') center/cover no-repeat}
 
-  /* tarjeta "crear otro ticket" */
-  .ticket-add{background:#fff;border:1.5px dashed var(--line);border-radius:var(--r);color:var(--field);
-              display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-              cursor:pointer;font-family:var(--font);padding:18px;min-height:140px;transition:border-color .15s,background .15s}
+  /* tarjeta "crear otro ticket" (delgada) */
+  .ticket-add{flex:1;min-height:74px;background:#fff;border:1.5px dashed var(--line);border-radius:var(--r);color:var(--field);
+              display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+              font-family:var(--font);transition:border-color .15s,background .15s}
   .ticket-add:hover{border-color:var(--field);background:#F3F7F4}
-  .ticket-add .plus{font-family:var(--score);font-size:2.6rem;line-height:.7}
+  .ticket-add .plus{font-family:var(--score);font-size:1.7rem;line-height:.7}
   .ticket-add .addlbl{font-weight:700;font-size:.9rem}
+
+  /* tarjeta de estadísticas (columna central) — foto + tinte rojo y degradé */
+  .stats-cell{background:linear-gradient(135deg,rgba(201,48,28,.80) 0%,rgba(86,18,10,.94) 100%),url('stat.jpg') center/cover no-repeat;
+              color:#FCEAE6;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+              padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between}
+  .sc-eye{color:#FFC4B6;font-size:.66rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .sc-stat{font-size:1.12rem;font-weight:700;line-height:1.25;margin-top:10px;color:#FFF6F3}
+  .sc-stat b{color:var(--gold)}
+  .sc-stat img{height:1em;vertical-align:-2px;border-radius:2px;margin-right:4px}
+  .sc-btn{margin-top:14px;background:#fff;color:#B23A23;font-weight:700;font-size:.78rem;
+          padding:9px 14px;border-radius:99px;text-align:center;text-decoration:none;white-space:nowrap}
+  .sc-btn:hover{filter:brightness(.97)}
 
   /* tarjeta del pozo (mismo estilo de marcador que el ticket) */
   .pool-cell{background:linear-gradient(135deg,rgba(20,86,140,.78) 0%,rgba(9,38,66,.94) 100%),url('pozo.jpg') center/cover no-repeat;
@@ -68,12 +83,9 @@
     .t-premios{display:none}
     .t-wa{display:none}
     .wa-mobile{display:flex;grid-column:1 / -1}
-    .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    /* tickets: botón naranjo en una sola línea */
-    .dash-grid .ticket{padding:14px}
-    .dash-grid .ticket .btn{font-size:.62rem;padding:9px 5px;white-space:nowrap}
-    /* pozo a ancho completo y SÚPER COMPACTO */
-    .pool-cell{grid-column:1 / -1;padding:10px 12px}
+    .dash-grid{grid-template-columns:1fr}
+    /* pozo SÚPER COMPACTO */
+    .pool-cell{padding:10px 12px}
     .pool-head{font-size:1rem;margin-bottom:6px}
     .pool-stats-row{gap:5px;margin-bottom:6px;padding-bottom:6px}
     .ps .lbl{font-size:.5rem;gap:3px}
@@ -163,6 +175,7 @@
         <span class="nav-predicciones" id="nav-predicciones"><a href="index.html#tickets">Mis Tickets</a></span>
         <a href="llave.html">Partidos</a>
         <a href="tabla.html">Tabla general</a>
+        <a href="estadisticas.html">Estadísticas</a>
         <span class="nav-sep" aria-hidden="true"></span>
         <a href="reglas.html">Reglas y puntajes</a>
       </nav>
@@ -181,6 +194,13 @@
       <div class="dash-grid">
         <div id="tickets-grid"></div>
         <a class="wa-btn wa-mobile" href="https://chat.whatsapp.com/Fr5iKsGeqImLnNLbjdzeht" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Súmate al grupo de WhatsApp</a>
+        <div class="stats-cell">
+          <div>
+            <div class="sc-eye">Datos de la polla</div>
+            <div class="sc-stat" id="stat-rotativo">Mira cómo va la polla en números.</div>
+          </div>
+          <a class="sc-btn" href="estadisticas.html">Ver estadísticas →</a>
+        </div>
         <div class="pool-cell">
           <div class="pool-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v4a4 4 0 0 1-8 0z"/><path d="M8 5H5v1a3 3 0 0 0 3 3M16 5h3v1a3 3 0 0 1-3 3"/><path d="M12 12v3M9.5 20h5l-.5-3h-4z"/></svg>Pozo y premios</div>
           <div class="pool-stats-row">
@@ -244,6 +264,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
+<script src="stats.js"></script>
 <script>
 // Aviso del dashboard:  'bienvenida' (modal de inicio, 1 sola vez por navegador) | 'morosos' (lista de no pagados) | 'testeo' | 'none'
 const DASHBOARD_NOTICE = 'morosos';
@@ -329,6 +350,7 @@ async function route(){
   document.getElementById('app-view').style.display = 'block';
   paintTopbar(profile);
   await Promise.all([ loadTickets(user), loadPool(), loadBoard() ]);
+  loadRotatingStat();   // métrica "sexy" rotativa (no bloquea el dashboard)
   if(DASHBOARD_NOTICE === 'testeo'){
     uiAlert('Estamos en período de testeo para que puedas familiarizarte con la app. Ingresa predicciones para los partidos restantes de la fase de grupos. El sábado 27 de junio a las 11:00 hrs. se reseteará todo el sitio para iniciar oficialmente la polla.', 'Estamos en testeo');
   }else if(DASHBOARD_NOTICE === 'morosos'){
@@ -373,6 +395,15 @@ async function loadPool(){
   document.getElementById('prize-3').textContent = clp(pot*0.10);
 }
 
+// ---------- Métrica rotativa de la tarjeta de estadísticas ----------
+async function loadRotatingStat(){
+  try{
+    const S = await computePollaStats();
+    const el = document.getElementById('stat-rotativo');
+    if(el) el.innerHTML = pickRotatingStat(S);
+  }catch(e){ /* deja el texto por defecto si algo falla */ }
+}
+
 // ---------- Tickets ----------
 async function loadTickets(user){
   const grid = document.getElementById('tickets-grid');
@@ -381,11 +412,9 @@ async function loadTickets(user){
   const tickets = data || [];
 
   let html = tickets.map((e,i)=>`
-    <a class="ticket ${i===0?'t1':'t2'}" href="predicciones.html?ticket=${e.id}">
-      <div class="num">${i+1}</div>
-      <div class="lbl">Ticket ${i+1}</div>
-      <div class="name">${escapeHtml(e.nombre)}</div>
-      <span class="btn btn-coral">Ir a mis predicciones →</span>
+    <a class="ticket t${i+1}" href="predicciones.html?ticket=${e.id}">
+      <div><div class="lbl">Ticket ${i+1}</div><div class="name">${escapeHtml(e.nombre)}</div></div>
+      <span class="tk-go">Ir →</span>
     </a>`).join('');
 
   // Tarjeta para crear otro ticket (visible si tiene menos de 2; al click se valida el permiso)
