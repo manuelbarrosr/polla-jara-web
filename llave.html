@@ -96,6 +96,42 @@
 const ROUND_LABEL = {LAST_32:'16avos',LAST_16:'8vos',QUARTER_FINALS:'4tos',SEMI_FINALS:'Semis',FINAL:'Final'};
 const ROUND_ORDER = ['LAST_32','LAST_16','QUARTER_FINALS','SEMI_FINALS','FINAL'];
 
+// Orden oficial del cuadro (FIFA): posición de cada cruce de 16avos.
+// Llave A = primeros 8 (arriba), Llave B = últimos 8 (abajo).
+const ORDER16 = [
+  ['Germany','Paraguay'], ['France','Sweden'], ['South Africa','Canada'], ['Netherlands','Morocco'],
+  ['Portugal','Croatia'], ['Spain','Austria'], ['United States','Bosnia-Herzegovina'], ['Belgium','Senegal'],
+  ['Brazil','Japan'], ['Ivory Coast','Norway'], ['Mexico','Ecuador'], ['England','Congo DR'],
+  ['Argentina','Cape Verde'], ['Australia','Egypt'], ['Switzerland','Algeria'], ['Colombia','Ghana'],
+];
+const SLOT16 = {};
+ORDER16.forEach((pair,i)=> pair.forEach(t=> SLOT16[t]=i));
+
+// Ordena los partidos de una ronda según el CUADRO (no por fecha):
+// cada partido se ubica por el equipo cuyo origen está más arriba en 16avos.
+// Los que aún están "Por definir" se rellenan por horario en los espacios libres,
+// y se reacomodan solos a medida que se conocen los clasificados.
+function bracketOrder(list){
+  const N = list.length;
+  if(N <= 1) return list.slice();
+  const span = 16 / N;
+  const slots = new Array(N).fill(null);
+  const tbd = [];
+  list.forEach(m=>{
+    const idxs = [m.home_team, m.away_team].filter(t=> SLOT16[t]!=null).map(t=> SLOT16[t]);
+    if(idxs.length){
+      let s = Math.floor(Math.min(...idxs) / span);
+      while(s < N && slots[s]) s++;       // si el espacio está ocupado, al siguiente libre
+      if(s < N){ slots[s] = m; return; }
+    }
+    tbd.push(m);
+  });
+  tbd.sort((a,b)=> a.kickoff < b.kickoff ? -1 : 1);
+  let ti = 0;
+  for(let i=0;i<N;i++){ if(!slots[i] && ti<tbd.length) slots[i] = tbd[ti++]; }
+  return slots.filter(Boolean).concat(tbd.slice(ti));
+}
+
 function fmtWhen(iso){
   return new Date(iso).toLocaleString('es-CL',{timeZone:'America/Santiago',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 }
@@ -116,7 +152,7 @@ async function init(){
   const present = ROUND_ORDER.filter(r => matches.some(m=>m.round===r));
   const third = matches.filter(m=>m.round==='THIRD_PLACE');
   bracket.innerHTML = present.map((r,ri)=>{
-    const list = matches.filter(m=>m.round===r).sort((a,b)=> a.kickoff<b.kickoff?-1:1);
+    const list = bracketOrder(matches.filter(m=>m.round===r));
     const isLast = ri === present.length-1;
     let inner;
     if(r==='FINAL'){
