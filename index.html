@@ -239,7 +239,7 @@
 <script src="app.js"></script>
 <script>
 // Aviso del dashboard:  'bienvenida' (modal de inicio, 1 sola vez por navegador) | 'morosos' (lista de no pagados) | 'testeo' | 'none'
-const DASHBOARD_NOTICE = 'bienvenida';
+const DASHBOARD_NOTICE = 'morosos';
 
 // ---------- Estado del formulario ----------
 let mode = 'login'; // 'login' | 'register'
@@ -414,6 +414,8 @@ const uiAlert   = (message, title='Aviso')=> uiModal({title, message, okText:'En
 
 // Alerta de morosos: lista a quienes no han pagado (pagado=false vía vista v_morosos)
 async function showMorosos(){
+  const KEY = 'polla_morosos_v1';   // se muestra 1 vez por sesión (no en cada visita)
+  try{ if(sessionStorage.getItem(KEY)) return; }catch(e){}
   const { data, error } = await sb.from('v_morosos').select('display_name');
   if(error) return;
   const nombres = (data||[]).map(r=>r.display_name).filter(Boolean);
@@ -421,6 +423,7 @@ async function showMorosos(){
   const intro = '¡Atención! Estos jugadores todavía no han pagado su cuota. Rogamos ponerse al día cuanto antes para evitar ser eliminados de la polla.';
   const lista = '<ul class="moroso-list">' + nombres.map(n=>`<li>${escapeHtml(n)}</li>`).join('') + '</ul>';
   uiModal({ title:'Jugadores morosos', messageHtml: escapeHtml(intro) + lista, okText:'Entendido', cancel:false });
+  try{ sessionStorage.setItem(KEY, '1'); }catch(e){}
 }
 
 async function addTicket(){
